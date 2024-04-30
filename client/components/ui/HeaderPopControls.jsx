@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import AdvancedControls from './AdvancedControls.jsx';
+import QrControls from './QrControls.jsx';
 
 const HeaderPopControls = ({ className, loading, popNameRef, handleWebcamChange, startButtonRef, onStart, showControls }) =>
 {
@@ -34,6 +35,7 @@ const HeaderPopControls = ({ className, loading, popNameRef, handleWebcamChange,
         <>
             <AdvancedControls className={`${className} ${!showControls && 'hidden'}`} loading={loading} popNameRef={popNameRef} handleWebcamChange={handleWebcamChange} startButtonRef={startButtonRef} onStart={onStart}
             />
+
         </>
     );
 };

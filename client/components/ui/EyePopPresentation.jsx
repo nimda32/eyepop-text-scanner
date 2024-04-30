@@ -5,14 +5,9 @@ import JsonExplorer from './presentation-pages/JsonExplorer';
 import Header from './Header';
 import HeaderPopControls from './HeaderPopControls';
 
-import "swiper/css";
-import { Swiper, SwiperSlide } from 'swiper/react';
-
-
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faGear, faComputer, faVideo, faChain, faPlay, faPause } from '@fortawesome/free-solid-svg-icons';
 
-let activeTimeout = null;
 
 const EyePopPresentation = ({ className, json = { status: { 'message': 'Loading...' } }, popNameRef, handleWebcamChange, startButtonRef, onStart, loading }) =>
 {
@@ -25,9 +20,6 @@ const EyePopPresentation = ({ className, json = { status: { 'message': 'Loading.
     const [ showControls, setShowControls ] = useState(false);
     const [ paused, setPaused ] = useState(false);
     const [ reset, setReset ] = useState("");
-
-
-
 
     return (
         <div className={`${className} w-full h-20 absolute left-0 top-0 flex flex-row justify-center bg-transparent gap-0`} >

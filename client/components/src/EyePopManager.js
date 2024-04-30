@@ -1,12 +1,15 @@
 import { EyePop } from "@eyepop.ai/eyepop";
 import { Render2d } from "@eyepop.ai/eyepop-render-2d";
+import QRCode from "qrcode";
+
 export default class EyePopManager
 {
-    static instance = null;
 
+    static instance = null;
 
     constructor(resultCanvasRef, videoRef, popNameRef, startButtonRef, setters = { setProgress, setLoading, setJSON })
     {
+
         if (EyePopManager.instance)
         {
             return EyePopManager.instance;
@@ -14,6 +17,7 @@ export default class EyePopManager
 
         this.startButtonRef = startButtonRef.current;
         this.resultCanvasRef = resultCanvasRef.current;
+        this.resultContext = this.resultCanvasRef.getContext("2d");
         this.videoRef = videoRef.current;
         this.popNameElement = popNameRef.current;
 
@@ -33,6 +37,8 @@ export default class EyePopManager
 
         this.stop = false;
         this.isJobRunning = false;
+
+        this.liveEgress = null;
 
         this.popComps = {
             "text": "ep_infer id=1 model=eyepop-person:EPPersonB1_Person_TorchScriptCuda_float32 threshold=0.8 ! ep_infer id=2 tracing=deepsort model=legacy:reid-mobilenetv2_x1_4_ImageNet_TensorFlowLite_int8 secondary-to-id=1 secondary-for-class-ids=<0> ! ep_infer id=3  category-name='text' model=eyepop-text:EPTextB1_Text_TorchScriptCuda_float32 threshold=0.6 secondary-to-id=1 secondary-for-class-ids=<0> ! ep_infer id=4 category-name='text' secondary-to-id=3 model=PARSeq:PARSeq_TextDataset_TorchScriptCuda_float32 threshold=0.1 ! ep_infer id=5 category-name='sports equipment' model=eyepop-sports:EPSportsB1_Sports_TorchScriptCuda_float32 threshold=0.55",
@@ -73,6 +79,30 @@ export default class EyePopManager
         this.setWebcam(webcamDevices[ 0 ].deviceId);
     }
 
+    createQrCode()
+    {
+
+        console.log('Creating QR Code...', "http://localhost:3000/client/?mobile=" + JSON.stringify(this.popSession));
+
+        QRCode.toCanvas(document.getElementById('qrCodeEyePop'),
+            "http://localhost:3000/eyepop?=" + JSON.stringify(this.popSession), function (error)
+        {
+            if (error) console.error(error)
+            console.log('success!')
+        });
+
+        // add a link as text as a sybling to the canvas
+        const link = document.createElement('a');
+        link.href = "http://localhost:3000/client/?mobile=" + JSON.stringify(this.popSession)
+        link.innerHTML = "http://localhost:3000/client/?mobile=....";
+        link.classList.add('text-blue-300', 'font-bold', 'text-sm', 'h-8', 'select-text');
+        link.target = "_blank";
+
+        const parent = document.getElementById('qrCodeEyePop').parentElement;
+        parent.appendChild(link);
+
+    }
+
     setWebcam(deviceID)
     {
         this.webcam = { id: deviceID };
@@ -87,7 +117,7 @@ export default class EyePopManager
         const parent = this.popNameElement.parentElement;
         const copy = this.popNameElement.cloneNode(true);
 
-        console.log(parent)
+        console.log(parent);
         // remove all children from the parent without a loop
         parent.innerHTML = '';
 
@@ -107,13 +137,13 @@ export default class EyePopManager
         if (!scope.isJobRunning)
         {
             await scope.startWebcamIngress();
-            scope.startButtonRef.innerHTML = "Stop";
+            scope.startButtonRef.innerHTML = "Start";
             scope.setLoading(false);
             return;
         }
 
         scope.setLoading(true);
-        scope.startButtonRef.innerHTML = "Start";
+        scope.startButtonRef.innerHTML = "Stop";
         await scope.popLiveIngress.close();
 
         scope.webcam.stream.getTracks()
@@ -207,18 +237,42 @@ export default class EyePopManager
 
             this.endpoint = await EyePop.endpoint({
                 auth: { session: this.popSession },
-                // popId: this.popUUID,
-                // auth: { oAuth2: true },
-                // popId: `transient`
             }).onStateChanged((from, to) =>
             {
                 console.log("Endpoint state transition from " + from + " to " + to);
-            }).onIngressEvent((ingressEvent) =>
+            }).onIngressEvent(async (ingressEvent) =>
             {
                 console.log(ingressEvent);
+                if (ingressEvent.event == 'stream-ready')
+                {
+
+                    // stop the webcam stream
+                    if (this.webcam)
+                    {
+                        this.webcam.stream.getTracks().forEach((track) =>
+                        {
+                            track.stop();
+                        });
+                    }
+
+                    await this.startRemoteStream(ingressEvent.ingressId);
+                    this.startLiveInference(ingressEvent.ingressId);
+
+
+                } else
+                {
+                    if (this.liveEgress && this.liveEgress.ingressId() == ingressEvent.ingressId)
+                    {
+                        this.videoRef.pause();
+                        this.videoRef.srcObject = null;
+                        this.resultContext.clearRect(0, 0, this.resultContext.width, this.resultContext.height);
+                        this.liveEgress = null;
+                    }
+                }
             }).connect();
 
             this.popNameElement.innerHTML = this.endpoint.popName();
+            this.createQrCode();
 
             return true;
 
@@ -230,6 +284,27 @@ export default class EyePopManager
             return false;
 
         }
+    }
+
+    async startRemoteStream(ingressId)
+    {
+        this.liveEgress = await this.endpoint.liveEgress(ingressId);
+        this.videoRef.srcObject = await this.liveEgress.stream();
+        this.videoRef.play();
+    }
+
+    async startLiveInference(ingressId)
+    {
+        this.endpoint.process({ ingressId: ingressId })
+            .then(async (results) =>
+            {
+                for await (let result of results)
+                {
+                    // console.log(result);
+                    this.setJSON(result);
+                    this.drawPrediction(result);
+                }
+            });
     }
 
     async startWebcamIngress()
@@ -266,15 +341,22 @@ export default class EyePopManager
     {
         if (!this.context) return;
         if (!result) return;
+        const { source_width, source_height } = result;
+        const parentWidth = this.resultCanvasRef.parentElement.clientWidth;
+        const parentHeight = this.resultCanvasRef.parentElement.clientHeight;
 
-        this.resultCanvasRef.width = result.source_width;
-        this.resultCanvasRef.height = result.source_height;
-        this.context.clearRect(0, 0, this.resultCanvasRef.width, this.resultCanvasRef.height);
+        const scaleFactor = Math.min(parentWidth / source_width, parentHeight / source_height);
+        const scaledWidth = source_width * scaleFactor;
+        const scaledHeight = source_height * scaleFactor;
 
-        // draw the video frame
-        this.context.drawImage(this.videoRef, 0, 0, this.resultCanvasRef.width, this.resultCanvasRef.height);
+        this.resultCanvasRef.width = scaledWidth;
+        this.resultCanvasRef.height = scaledHeight;
+
+        this.context.clearRect(0, 0, scaledWidth, scaledHeight);
+        this.context.drawImage(this.videoRef, 0, 0, scaledWidth, scaledHeight);
 
         this.popPlotter.draw(result);
+
     }
 
     getClosestPrediction(time)

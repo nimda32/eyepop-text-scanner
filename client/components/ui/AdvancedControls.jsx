@@ -1,7 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCamera } from '@fortawesome/free-solid-svg-icons';
+import React, { useEffect, useRef, useState } from 'react';
+import QrControls from './QrControls';
 
 const AdvancedControls = ({ className, loading, popNameRef, handleWebcamChange, startButtonRef, onStart }) =>
 {
+
+    const cameraModalRef = useRef();
+    const marginsStyle = 'p-4 mr-[5rem] ml-[5rem] mt-[1rem]';
     const [ webcamDevices, setWebcamDevices ] = useState([]);
 
     useEffect(() =>
@@ -32,7 +38,6 @@ const AdvancedControls = ({ className, loading, popNameRef, handleWebcamChange, 
         setWebcamDevices(webcamDevices);
     }
 
-    const marginsStyle = ' p-4 mr-[5rem] ml-[5rem] mt-[1rem] ';
     return (
 
         <div
@@ -64,6 +69,10 @@ const AdvancedControls = ({ className, loading, popNameRef, handleWebcamChange, 
                     className={`${loading && 'hidden'}  bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white border border-blue-500 hover:border-transparent rounded-3xl h-10 m-5 min-w-32 w-44 self-center hover:scale-125 transition-all`} >
                     Start Camera
                 </button>
+
+
+                <QrControls loading={loading} popNameRef={popNameRef} handleWebcamChange={handleWebcamChange} startButtonRef={startButtonRef} onStart={onStart}
+                />
 
             </div>
 

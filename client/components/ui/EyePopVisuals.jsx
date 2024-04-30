@@ -6,7 +6,6 @@ import React, { useEffect, useRef } from 'react';
 const EyePopVisuals = ({ className, resultCanvasRef, videoRef, setModel }) =>
 {
     const sharedClass = 'object-contain h-full bg-transparent d-block';
-    const canvasRef = useRef();
 
     // when the f key is pressed make the canvas go full screen
     const toggleFullScreen = () =>

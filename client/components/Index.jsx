@@ -5,6 +5,9 @@ import EyePopVisuals from './ui/EyePopVisuals.jsx';
 import EyePopManager from './src/EyePopManager.js';
 import LoadingScreen from './ui/LoadingScreen.jsx';
 import EyePopPresentation from './ui/EyePopPresentation.jsx';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import IngressOnly from './ui/IngressOnly.jsx';
+
 
 export function Index()
 {
@@ -62,57 +65,62 @@ export function Index()
     }, [ resultCanvasRef.current, popNameRef.current, videoRef.current ]);
 
 
+
     return (
-        <>
-            {!clicked ?
-                <>
-                    <div
-                        className="fixed top-0 left-0 w-screen h-screen flex items-center justify-center bg-gray-900 z-50">
-                        <div className="btn text-xl btn-primary hover:bg-primary-gradient hover:scale-125"
-                            onClick={() => { setClicked(true); }}
-                        >
-                            continue
-                        </div>
-                    </div>
+        <Router>
+            <Routes>
+                <Route path="/client/*" element={
 
-                </>
+                    <IngressOnly className="flex flex-col w-full h-full" loading={loading} popNameRef={popNameRef} handleWebcamChange={handleWebcamChange} startButtonRef={startButtonRef} onStart={toggleStart} />
 
-                :
+                } />
 
-                <>
+                <Route exact path="/"
+                    element={
+                        !clicked ? (
+                            <div className="fixed top-0 left-0 w-screen h-screen flex items-center justify-center bg-gray-900 z-50">
+                                <div
+                                    className="btn text-xl btn-primary hover:bg-primary-gradient hover:scale-125"
+                                    onClick={() =>
+                                    {
+                                        setClicked(true);
+                                    }}
+                                >
+                                    continue
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="flex flex-col w-full h-full ">
+                                    <EyePopPresentation
+                                        clicked={clicked}
+                                        popNameRef={popNameRef}
+                                        startButtonRef={startButtonRef}
+                                        handleWebcamChange={handleWebcamChange}
+                                        onStart={toggleStart}
+                                        progress={progress}
+                                        loading={loading}
+                                        json={json}
+                                    />
 
-                    <div className='flex flex-col w-full h-full '>
+                                    <EyePopVisuals
+                                        clicked={clicked}
+                                        resultCanvasRef={resultCanvasRef}
+                                        videoRef={videoRef}
+                                        setModel={setModel}
+                                    />
+                                </div>
 
-                        <EyePopPresentation
-                            clicked={clicked}
-                            popNameRef={popNameRef}
-                            startButtonRef={startButtonRef}
-                            handleWebcamChange={handleWebcamChange}
-                            onStart={toggleStart}
-                            progress={progress}
-                            loading={loading}
-                            json={json}
-                        />
+                                <LoadingScreen
+                                    className={'absolute top-0 left-0 w-full h-full bg-black'}
+                                    loading={loading}
+                                />
+                            </>
+                        )
+                    } />
 
-
-                        <EyePopVisuals
-                            clicked={clicked}
-                            resultCanvasRef={resultCanvasRef}
-                            videoRef={videoRef}
-                            setModel={setModel}
-                        />
-                    </div>
-
-
-                    <LoadingScreen
-                        className={'absolute top-0 left-0 w-full h-full bg-black'}
-                        loading={loading}
-                    />
-                </>
-            }
-
-        </>
-
+            </Routes>
+        </Router>
     );
 }
 
