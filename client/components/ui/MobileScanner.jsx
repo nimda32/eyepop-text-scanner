@@ -1,11 +1,11 @@
 import React, { useEffect, useState, videoRef, resultCanvasRef, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCamera } from '@fortawesome/free-solid-svg-icons';
+import { faCamera, faCancel, faRepeat } from '@fortawesome/free-solid-svg-icons';
 import AdvancedControls from './AdvancedControls';
 import { EyePop } from "@eyepop.ai/eyepop";
 import { Render2d } from '@eyepop.ai/eyepop-render-2d';
 import EyePopVisuals from './EyePopVisuals';
-import MaskCanvas from './MaskCanvas';
+import MaskCanvas, { drawGradient } from './MaskCanvas';
 
 
 const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
@@ -17,17 +17,17 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
 
     const [ loading, setLoading ] = useState(true);
     const [ eyePopEndpoint, setEyePopEndpoint ] = useState(null);
-    const [ liveIngress, setLiveIngress ] = useState(null);
     const [ webcamDevices, setWebcamDevices ] = useState([]);
     const [ selectedWebcam, setSelectedWebcam ] = useState(null);
     const [ videoPlaying, setVideoPlaying ] = useState(false);
-    const [ isBoxDrawing, setIsBoxDrawing ] = useState(false);
+    const [ predictionDrawn, setPredictionDrawn ] = useState(false);
 
     const resultCanvasRef = useRef();
+    const compositionCanvasRef = useRef();
     const [ canvasCtx, setCanvasCtx ] = useState(null);
     const videoRef = useRef();
-    const cameraModalRef = useRef();
     const popNameRef = useRef();
+    const maskRef = useRef();
 
     const [ maskRect, setMaskRect ] = useState({ x: 0, y: 0, width: 0, height: 0 });
     const [ maskSize, setMaskSize ] = useState({ width: 0, height: 0 });
@@ -141,6 +141,7 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
         }
 
         setVideoPlaying(!videoPlaying);
+
     }
 
     const startInference = async () =>
@@ -158,14 +159,19 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
 
         const blob = new Blob([ new Uint8Array(array) ], { type: 'image/png' });
 
+
         eyePopEndpoint
             .process({ stream: blob, mimeType: 'image/png' })
             .then(async (results) =>
             {
-                const remoteOverlayContext = resultCanvasRef.current.getContext('2d');
+                setPredictionDrawn(true);
 
-                const remoteRender = Render2d.renderer(remoteOverlayContext, [
+                const maskCtx = maskRef.current.getContext('2d');
+                const compositionCtx = compositionCanvasRef.current.getContext('2d');
+
+                const remoteRender = Render2d.renderer(compositionCtx, [
                     Render2d.renderBox(),
+                    Render2d.renderKeypoints(),
                 ]);
 
                 for await (let result of results)
@@ -182,10 +188,20 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
                     resultCanvasRef.current.width = scaledWidth;
                     resultCanvasRef.current.height = scaledHeight;
 
-                    remoteOverlayContext.clearRect(0, 0, scaledWidth, scaledHeight);
-                    remoteOverlayContext.drawImage(videoRef.current, 0, 0, scaledWidth, scaledHeight);
+                    compositionCtx.clearRect(0, 0, scaledWidth, scaledHeight);
+                    compositionCtx.drawImage(videoRef.current, 0, 0, scaledWidth, scaledHeight);
                     remoteRender.draw(result);
+
+                    compositionCtx.drawImage(maskRef.current, 0, 0, scaledWidth, scaledHeight);
+
+                    maskCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+                    maskCtx.drawImage(compositionCanvasRef.current, 0, 0, window.innerWidth, window.innerHeight);
+
                 }
+
+            }).catch((error) =>
+            {
+                setPredictionDrawn(false);
             });
 
     }
@@ -294,7 +310,6 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
         }
     }
 
-
     // add listeners for click and drag events that will draw a box on the canvas
     useEffect(() =>
     {
@@ -324,10 +339,10 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
     return (
         <div className='flex flex-col items-center justify-between h-full'>
 
-
             <div className={`absolute left-0 top-0 w-full h-full p-0 justify-center `} >
 
                 <MaskCanvas
+                    maskRef={maskRef}
                     maskRect={maskRect}
                     canvasSize={maskSize}
                     id="mask-canvas"
@@ -337,7 +352,17 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
                 <canvas
                     id="result-overlay-mobile"
                     ref={resultCanvasRef}
+                    width={window.innerWidth}
+                    height={window.innerHeight}
                     className={`${sharedClass}`}
+                ></canvas>
+
+                <canvas
+                    id="hidden-canvas"
+                    ref={compositionCanvasRef}
+                    width={window.innerWidth}
+                    height={window.innerHeight}
+                    className={`${sharedClass} hidden`}
                 ></canvas>
 
                 <video
@@ -387,16 +412,24 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
                 </div>
             </div>
 
-
-            <div className="bg-blue-400 flex h-20 w-20 justify-center m-5 items-center rounded-full shadow-2xl p-5 z-10">
-                <FontAwesomeIcon className='text-blue-100 rounded-full p-2 w-full h-full' icon={faCamera} onClick={() => startInference()} />
+            <div className="bg-blue-400 flex h-20 w-20 justify-center m-5 items-center rounded-full shadow-2xl p-5 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
+                onClick={() =>
+                {
+                    if (predictionDrawn)
+                    {
+                        setMaskRect({ x: maskRect.x + 1, y: maskRect.y + 1, width: maskRect.width - 1, height: maskRect.height - 1 })
+                        setPredictionDrawn(false);
+                    } else
+                    {
+                        startInference();
+                    }
+                }}>
+                <FontAwesomeIcon className='text-blue-100 rounded-full p-2 w-full h-full' icon={predictionDrawn ? faCancel : faCamera} />
             </div>
-
 
         </div>
     );
 
 }
-
 
 export default MobileScanner;

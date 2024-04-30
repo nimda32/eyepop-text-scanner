@@ -1,28 +1,39 @@
 import React, { useEffect, useState, useRef } from 'react';
 
 
-const MaskCanvas = ({ canvasSize, maskRect, className }) =>
+export const drawGradient = (ctx, width, height) =>
+{
+    const gradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width / 2);
+    gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
+    gradient.addColorStop(1, 'rgba(0, 0, 0, .8)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+}
+
+const MaskCanvas = ({ maskRef, canvasSize, maskRect, className, }) =>
 {
 
-    const mask = useRef();
 
     useEffect(() =>
     {
-        if (!mask.current) return;
-        if (!maskRect) return;
+        if (!maskRef.current) return;
 
-        const canvas = mask.current;
+        if (canvasSize.width === 0 || canvasSize.height === 0)
+        {
+            maskRef.current.width = window.innerWidth;
+            maskRef.current.height = window.innerHeight;
+            drawGradient(maskRef.current.getContext('2d'), window.innerWidth, window.innerHeight);
+            return;
+        }
+
+        const canvas = maskRef.current;
         canvas.width = canvasSize.width;
         canvas.height = canvasSize.height;
         const ctx = canvas.getContext('2d');
         const { width, height } = canvas;
         ctx.clearRect(0, 0, width, height);
-
-        const gradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width / 2);
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, .8)');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, width, height);
+        drawGradient(ctx, width, height);
+        // blur the canvas
 
         // use the maskRect to clear the center of the canvas, based on it's x, y, width, and height
         if (maskRect)
@@ -30,7 +41,7 @@ const MaskCanvas = ({ canvasSize, maskRect, className }) =>
             ctx.clearRect(maskRect.x, maskRect.y, maskRect.width, maskRect.height);
         }
 
-    }, [ mask, maskRect ]);
+    }, [ maskRef, maskRect ]);
 
     return (
         <canvas
@@ -38,9 +49,9 @@ const MaskCanvas = ({ canvasSize, maskRect, className }) =>
                 pointerEvents: 'none',
             }}
             className={className}
-            ref={mask}
+            ref={maskRef}
         />
     );
 }
 
-export default MaskCanvas;  
+export default MaskCanvas;

@@ -48,8 +48,6 @@ const QrControls = ({ className, loading, popNameRef, handleWebcamChange, startB
                         return;
                     }
 
-                    console.log('cameraModalRef', cameraModalRef.current);
-
                     cameraModalRef.current.showModal();
                 }}
                 className={`${loading && 'hidden'}  bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white border border-blue-500 hover:border-transparent rounded-3xl h-10 m-5 min-w-32 w-44 self-center hover:scale-125 transition-all`} >
