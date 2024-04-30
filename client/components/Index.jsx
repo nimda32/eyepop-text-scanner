@@ -7,6 +7,7 @@ import LoadingScreen from './ui/LoadingScreen.jsx';
 import EyePopPresentation from './ui/EyePopPresentation.jsx';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import IngressOnly from './ui/IngressOnly.jsx';
+import MobileScanner from './ui/MobileScanner.jsx';
 
 
 export function Index()
@@ -69,11 +70,18 @@ export function Index()
     return (
         <Router>
             <Routes>
+                <Route path="/mobile/*" element={
+
+                    <MobileScanner className="flex flex-col w-full h-full" loading={loading} popNameRef={popNameRef} handleWebcamChange={handleWebcamChange} startButtonRef={startButtonRef} onStart={toggleStart} />
+
+                } />
+
                 <Route path="/client/*" element={
 
                     <IngressOnly className="flex flex-col w-full h-full" loading={loading} popNameRef={popNameRef} handleWebcamChange={handleWebcamChange} startButtonRef={startButtonRef} onStart={toggleStart} />
 
                 } />
+
 
                 <Route exact path="/"
                     element={
