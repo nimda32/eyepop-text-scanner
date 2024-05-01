@@ -12,7 +12,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@alenaksu/json-viewer": "^2.0.1",
     "@eyepop.ai/eyepop": "^0.19.0",
     "@eyepop.ai/eyepop-render-2d": "^0.19.0",
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
@@ -20,21 +19,14 @@
     "@fortawesome/free-regular-svg-icons": "^6.5.1",
     "@fortawesome/free-solid-svg-icons": "^6.5.1",
     "@fortawesome/react-fontawesome": "^0.2.0",
-    "@react-three/drei": "^9.101.0",
-    "@react-three/fiber": "^8.15.19",
-    "@react-three/flex": "latest",
-    "@types/three": "^0.162.0",
     "font-awesome": "^4.7.0",
-    "gsap": "^3.12.5",
     "pino": "^8.19.0",
     "qrcode": "^1.5.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router": "^6.23.0",
-    "react-router-dom": "^6.23.0",
-    "save": "^2.9.0",
-    "swiper": "^11.0.7",
-    "three": "^0.161.0"
+    "react-router-dom": "^6.23.0"
+
   },
   "devDependencies": {
     "@fastify/vite": "^6.0.6",
