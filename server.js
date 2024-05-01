@@ -8,8 +8,8 @@ import { join } from 'path';
 // ...
 
 
-const POP_UUID = '7798a7faaad645aeb7021b9c231c8dc2';
-const POP_API_SECRET = 'AAGkggPIZ06_xgV2gF5YYCJHZ0FBQUFBQm1LLTBnU3RKXzZ1dktnSDRDRjFwNWlKb3U4M0dnM21NMHpmZnZHTTRDSWtpU1BQeDRMMTY0UEdJTFZuXzJJRE5xVWFvWmg4WHFDb2ZicjRKd0dQaWd1Yjk5dWMwemg1OUpzMGN4UkFxbTJkNUxESWc9';
+let POP_UUID = '';
+let POP_API_SECRET = '';
 
 const server = Fastify()
 server.setNotFoundHandler(async (request, reply) =>
@@ -22,6 +22,21 @@ await server.register(FastifyVite, {
     dev: process.argv.includes('--dev'),
     spa: true,
     sourceMap: true,
+});
+
+server.post('/eyepop/authenticate', async (request, reply) =>
+{
+    try
+    {
+        POP_UUID = request.body.popId;
+        POP_API_SECRET = request.body.secretKey;
+        reply.send({ message: 'Authenticated' });
+
+    } catch (error)
+    {
+        console.error('Error:', error);
+        reply.send({ error });
+    }
 });
 
 server.get('/', (req, reply) =>
@@ -64,12 +79,5 @@ server.get('/eyepop/session', async (req, reply) =>
     }
 });
 
-// server.setNotFoundHandler((req, reply) =>
-// {
-//     reply.code(404).send('Not Found')
-// })
-
-
-
 await server.vite.ready()
-await server.listen({ port: 3000 })
+await server.listen({ port: 8000 })

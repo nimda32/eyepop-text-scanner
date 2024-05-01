@@ -10,7 +10,7 @@ export const drawGradient = (ctx, width, height) =>
     ctx.fillRect(0, 0, width, height);
 }
 
-const MaskCanvas = ({ maskRef, canvasSize, maskRect, className, }) =>
+const MaskCanvas = ({ maskRef, maskSize, maskRect, className, }) =>
 {
 
 
@@ -18,17 +18,22 @@ const MaskCanvas = ({ maskRef, canvasSize, maskRect, className, }) =>
     {
         if (!maskRef.current) return;
 
-        if (canvasSize.width === 0 || canvasSize.height === 0)
-        {
-            maskRef.current.width = window.innerWidth;
-            maskRef.current.height = window.innerHeight;
-            drawGradient(maskRef.current.getContext('2d'), window.innerWidth, window.innerHeight);
-            return;
-        }
+        const source_height = maskRef.current.height;
+        const source_width = maskRef.current.width;
+
+        const parentWidth = maskRef.current.parentElement.clientWidth;
+        const parentHeight = maskRef.current.parentElement.clientHeight;
+
+        const scaleFactor = Math.min(parentWidth / source_width, parentHeight / source_height);
+        const scaledWidth = source_width * scaleFactor;
+        const scaledHeight = source_height * scaleFactor;
+
+        maskRef.current.width = scaledWidth;
+        maskRef.current.height = scaledHeight;
 
         const canvas = maskRef.current;
-        canvas.width = canvasSize.width;
-        canvas.height = canvasSize.height;
+        canvas.width = maskSize.width;
+        canvas.height = maskSize.height;
         const ctx = canvas.getContext('2d');
         const { width, height } = canvas;
         ctx.clearRect(0, 0, width, height);
@@ -48,6 +53,8 @@ const MaskCanvas = ({ maskRef, canvasSize, maskRect, className, }) =>
             style={{
                 pointerEvents: 'none',
             }}
+            width={maskSize.width || window.innerWidth}
+            height={maskSize.height || window.innerHeight}
             className={className}
             ref={maskRef}
         />

@@ -1,36 +1,40 @@
 import React, { useEffect, useState, videoRef, resultCanvasRef, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCamera, faCancel, faRepeat } from '@fortawesome/free-solid-svg-icons';
-import AdvancedControls from './AdvancedControls';
+import { faCamera, faCancel, faGear, faRepeat } from '@fortawesome/free-solid-svg-icons';
 import { EyePop } from "@eyepop.ai/eyepop";
 import { Render2d } from '@eyepop.ai/eyepop-render-2d';
-import EyePopVisuals from './EyePopVisuals';
 import MaskCanvas, { drawGradient } from './MaskCanvas';
+import SettingsDialog from './SettingsDialog';
+import { inferStrings } from '../src/EyePopManager';
+import EyePopVisuals from './EyePopVisuals';
 
+let isDrawing = false;
 
-const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
+const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 {
+
     const sharedClass = 'object-contain h-full w-full d-block aboslute flex-none';
     const marginsStyle = 'p-4 mr-[5rem] ml-[5rem] mt-[1rem]';
-
-    let isDrawing = false;
+    const settingsRef = useRef();
+    const compositionCanvasRef = useRef();
+    const maskRef = useRef();
 
     const [ loading, setLoading ] = useState(true);
     const [ eyePopEndpoint, setEyePopEndpoint ] = useState(null);
     const [ webcamDevices, setWebcamDevices ] = useState([]);
     const [ selectedWebcam, setSelectedWebcam ] = useState(null);
     const [ videoPlaying, setVideoPlaying ] = useState(false);
-    const [ predictionDrawn, setPredictionDrawn ] = useState(false);
+    const [ popUUID, setPopUUID ] = useState(null);
 
-    const resultCanvasRef = useRef();
-    const compositionCanvasRef = useRef();
     const [ canvasCtx, setCanvasCtx ] = useState(null);
-    const videoRef = useRef();
-    const popNameRef = useRef();
-    const maskRef = useRef();
+    const [ maskRect, setMaskRect ] = useState({ x: 0, y: 0, width: window.innerWidth, height: window.innerHeight });
+    const [ maskSize, setMaskSize ] = useState({ width: window.innerWidth, height: window.innerHeight });
 
-    const [ maskRect, setMaskRect ] = useState({ x: 0, y: 0, width: 0, height: 0 });
-    const [ maskSize, setMaskSize ] = useState({ width: 0, height: 0 });
+    const setModel = (model) =>
+    {
+        console.log('setModel', model);
+        eyePopEndpoint.changePopComp(inferStrings[ model ])
+    }
 
     useEffect(() =>
     {
@@ -45,6 +49,17 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
     {
         if (!resultCanvasRef.current) return;
         if (!videoRef.current) return;
+        if (!settingsRef.current) return;
+
+        if (!popUUID)
+        {
+            settingsRef.current.showModal();
+            return;
+        } else
+        {
+            settingsRef.current.close();
+        }
+
         const ctx = resultCanvasRef.current.getContext('2d');
         setCanvasCtx(ctx);
 
@@ -52,14 +67,10 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
         {
             try
             {
-                const response = await fetch('/eyepop/session');
-                const sessionData = await response.json();
-
-                console.log('EyePop Session data:', sessionData);
-
                 // Set the endpoint
                 const endpoint = await EyePop.endpoint({
-                    auth: { session: sessionData },
+                    popId: popUUID,
+                    auth: { oAuth2: true },
                 }).onStateChanged((from, to) =>
                 {
                     console.log("Endpoint state transition from " + from + " to " + to);
@@ -68,14 +79,17 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
                     console.log('Ingress event:', event);
                 }).connect();
 
+                popNameRef.current.innerText = endpoint.popName();
+
                 setEyePopEndpoint(endpoint);
                 setLoading(false);
-                popNameRef.current.innerText = endpoint.popName();
+
 
             } catch (error)
             {
                 console.error('Error parsing mobile data:', error);
-                alert('Failed to parse session data, please check the URL and try again.');
+                alert('Pop Failed to load. Verify UUID', error);
+                window.location.reload();
             }
         }
 
@@ -84,23 +98,23 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
         let animationLoop = null;
         const blitVideoAnimation = () =>
         {
-            if (!isDrawing)
-            {
-                const source_height = videoRef.current.videoHeight;
-                const source_width = videoRef.current.videoWidth;
+            //if (!isDrawing)
+            //{
+            const source_height = videoRef.current.videoHeight;
+            const source_width = videoRef.current.videoWidth;
 
-                const parentWidth = resultCanvasRef.current.parentElement.clientWidth;
-                const parentHeight = resultCanvasRef.current.parentElement.clientHeight;
+            const parentWidth = resultCanvasRef.current.parentElement.clientWidth;
+            const parentHeight = resultCanvasRef.current.parentElement.clientHeight;
 
-                const scaleFactor = Math.min(parentWidth / source_width, parentHeight / source_height);
-                const scaledWidth = source_width * scaleFactor;
-                const scaledHeight = source_height * scaleFactor;
+            const scaleFactor = Math.min(parentWidth / source_width, parentHeight / source_height);
+            const scaledWidth = source_width * scaleFactor;
+            const scaledHeight = source_height * scaleFactor;
 
-                resultCanvasRef.current.width = scaledWidth;
-                resultCanvasRef.current.height = scaledHeight;
+            resultCanvasRef.current.width = scaledWidth;
+            resultCanvasRef.current.height = scaledHeight;
 
-                ctx.drawImage(videoRef.current, 0, 0, scaledWidth, scaledHeight);
-            }
+            ctx.drawImage(videoRef.current, 0, 0, scaledWidth, scaledHeight);
+            //}
 
             animationLoop = requestAnimationFrame(blitVideoAnimation);
         }
@@ -118,7 +132,7 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
             videoRef.current.removeEventListener('play', startAnimation);
         }
 
-    }, [ resultCanvasRef, videoRef ]);
+    }, [ resultCanvasRef, videoRef, popUUID ]);
 
     const toggleCamera = async () =>
     {
@@ -164,9 +178,8 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
             .process({ stream: blob, mimeType: 'image/png' })
             .then(async (results) =>
             {
-                setPredictionDrawn(true);
-
                 const maskCtx = maskRef.current.getContext('2d');
+                const maskCopy = maskCtx.getImageData(0, 0, maskSize.width, maskSize.height);
                 const compositionCtx = compositionCanvasRef.current.getContext('2d');
 
                 const remoteRender = Render2d.renderer(compositionCtx, [
@@ -187,15 +200,24 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
 
                     resultCanvasRef.current.width = scaledWidth;
                     resultCanvasRef.current.height = scaledHeight;
+                    compositionCanvasRef.current.width = scaledWidth;
+                    compositionCanvasRef.current.height = scaledHeight;
 
-                    compositionCtx.clearRect(0, 0, scaledWidth, scaledHeight);
+                    compositionCtx.globalAlpha = 0.5;
                     compositionCtx.drawImage(videoRef.current, 0, 0, scaledWidth, scaledHeight);
+                    compositionCtx.globalAlpha = 1;
+
                     remoteRender.draw(result);
 
-                    compositionCtx.drawImage(maskRef.current, 0, 0, scaledWidth, scaledHeight);
+                    // clear all the borders around the maskRect of the composition canvas
+                    compositionCtx.clearRect(0, 0, maskRect.x, maskRect.y + window.innerHeight);
+                    compositionCtx.clearRect(0, 0, window.innerWidth, maskRect.y);
+                    compositionCtx.clearRect(maskRect.x + maskRect.width, 0, window.innerWidth, window.innerHeight);
+                    compositionCtx.clearRect(maskRect.x, maskRect.y + maskRect.height, window.innerWidth, window.innerHeight);
 
                     maskCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-                    maskCtx.drawImage(compositionCanvasRef.current, 0, 0, window.innerWidth, window.innerHeight);
+                    maskCtx.putImageData(maskCopy, 0, 0);
+                    maskCtx.drawImage(compositionCanvasRef.current, 0, 0, compositionCanvasRef.current.width, compositionCanvasRef.current.height);
 
                 }
 
@@ -267,15 +289,16 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
         const rect = resultCanvasRef.current.getBoundingClientRect();
 
         let x, y;
+        const offsetY = (parentHeight - scaledHeight) / 2;
 
         if (e.type === 'mousedown' || e.type === 'mousemove')
         {
             x = (e.clientX - rect.left) * scaleFactor;
-            y = (e.clientY - rect.top) * scaleFactor;
+            y = ((e.clientY - rect.top) * scaleFactor) - offsetY;
         } else if (e.type === 'touchstart' || e.type === 'touchmove')
         {
             x = (e.touches[ 0 ].clientX - rect.left) * scaleFactor;
-            y = (e.touches[ 0 ].clientY - rect.top) * scaleFactor;
+            y = ((e.touches[ 0 ].clientY - rect.top) * scaleFactor) - offsetY;
         }
 
         canvasCtx.strokeStyle = 'blue';
@@ -290,7 +313,7 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
         {
             if (isDrawing)
             {
-                canvasCtx.clearRect(0, 0, resultCanvasRef.current.width, resultCanvasRef.current.height);
+                //canvasCtx.clearRect(0, 0, resultCanvasRef.current.width, resultCanvasRef.current.height);
                 canvasCtx.beginPath();
                 canvasCtx.rect(startX, startY, x - startX, y - startY);
                 canvasCtx.stroke();
@@ -344,7 +367,7 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
                 <MaskCanvas
                     maskRef={maskRef}
                     maskRect={maskRect}
-                    canvasSize={maskSize}
+                    maskSize={maskSize}
                     id="mask-canvas"
                     className={`${sharedClass} fixed top-0 left-0 w-full h-full flex justify-center p-0`}
                 ></MaskCanvas>
@@ -376,55 +399,71 @@ const MobileScanner = ({ className, handleWebcamChange, onStart }) =>
             </div>
 
             <div
-                className={` ${loading ? 'h-0' : 'h-14'} transition-all duration-500 z-10 `}>
+                className={`${loading ? 'h-0' : 'h-20'} transition-all duration-500 z-10 ${marginsStyle} bg-blue-400 flex flex-col justify-center items-center rounded-3xl shadow-2xl`}>
 
-                <div
-                    className={`${marginsStyle} bg-blue-400 flex h-full justify-center items-center rounded-3xl shadow-2xl p-5`}>
+                <div className='h-full flex justify-center items-center text-center'>
 
-                    {loading && <div className='text-blue-100 font-extrabold text-center text-xl w-32 overflow-hidden'>Loading...</div>}
 
-                    <div
-                        className='text-blue-100 font-extrabold text-xl w-32 overflow-hidden'
-                        ref={popNameRef}
-                    >
-                    </div>
+                    {loading ?
 
-                    <select
-                        className={`${loading && 'hidden'} bg-white text-gray-700 border border-gray-300 rounded-3xl h-10 mr-5 w-72 self-center`}
-                        onChange={(e) => { selectWebcam(e.target.value) }}
-                    >
+                        <div className='text-blue-100  text-center font-extrabold text-xl w-32 h-10 pt-2 overflow-hidden'
+                            ref={popNameRef} >
+                        </div>
 
-                        {webcamDevices.map((device, index) => (
-                            <option key={index} value={device.deviceId}>
-                                {device.label}
-                            </option>
-                        ))}
+                        :
 
-                    </select>
+                        <div className='flex justify-center items-center h-12 w-full gap-1'>
+                            <div className='text-blue-100 font-extrabold text-center  text-xl w-32 h-12 overflow-hidden'
+                                ref={popNameRef} >
+                            </div>
 
-                    <button
-                        ref={null}
-                        onClick={() => toggleCamera()}
-                        className={`${loading && 'hidden'}  bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white border border-blue-500 hover:border-transparent rounded-3xl h-10 mr-5 min-w-32 w-44 self-center hover:scale-125 transition-all`} >
-                        {videoPlaying ? 'Stop' : 'Start'}
-                    </button>
+                            <select
+                                className={`${loading && 'hidden'} bg-white text-gray-700 border border-gray-300 rounded-3xl w-72   h-12 self-center`}
+                                onChange={(e) => { selectWebcam(e.target.value) }}
+                            >
 
+                                {webcamDevices.map((device, index) => (
+                                    <option key={index} value={device.deviceId}>
+                                        {device.label}
+                                    </option>
+                                ))}
+
+                            </select>
+
+                            <button
+                                ref={null}
+                                onClick={() => toggleCamera()}
+                                className={`${loading && 'hidden'}  bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white border border-blue-500 hover:border-transparent rounded-3xl h-12 mr-5 min-w-32 w-44 self-center hover:scale-125 transition-all`} >
+                                {videoPlaying ? 'Stop' : 'Start'}
+                            </button>
+
+                            <div className="bg-gray-800 flex h-12 w-12 justify-center items-center rounded-full shadow-2xl p-2 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
+                                onClick={() =>
+                                {
+                                    if (settingsRef.current)
+                                    {
+                                        settingsRef.current.showModal();
+                                    }
+                                }}>
+                                <FontAwesomeIcon className='text-blue-100 rounded-full w-full h-full' icon={faGear} />
+                            </div>
+
+
+                        </div>
+                    }
                 </div>
             </div>
+
+            <SettingsDialog ref={settingsRef} setModel={setModel} showModelSelector={popUUID} setPopUUID={setPopUUID} />
 
             <div className="bg-blue-400 flex h-20 w-20 justify-center m-5 items-center rounded-full shadow-2xl p-5 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
                 onClick={() =>
                 {
-                    if (predictionDrawn)
-                    {
-                        setMaskRect({ x: maskRect.x + 1, y: maskRect.y + 1, width: maskRect.width - 1, height: maskRect.height - 1 })
-                        setPredictionDrawn(false);
-                    } else
-                    {
-                        startInference();
-                    }
+                    setMaskRect({ x: maskRect.x + 1, y: maskRect.y + 1, width: maskRect.width - 1, height: maskRect.height - 1 });
+                    startInference();
+
                 }}>
-                <FontAwesomeIcon className='text-blue-100 rounded-full p-2 w-full h-full' icon={predictionDrawn ? faCancel : faCamera} />
+                <FontAwesomeIcon className='text-blue-100 rounded-full p-2 w-full h-full' icon={faCamera} />
             </div>
 
         </div>
