@@ -406,9 +406,18 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
                     {loading ?
 
-                        <div className='text-blue-100  text-center font-extrabold text-xl w-32 h-10 pt-2 overflow-hidden'
-                            ref={popNameRef} >
-                        </div>
+                        <>
+                            <div className='text-blue-100  text-center font-extrabold text-xl w-32 h-10 pt-2 overflow-hidden hidden'
+                                ref={popNameRef} >
+                            </div>
+
+
+                            <div className='text-blue-100  text-center font-extrabold text-xl w-32 h-10 pt-2 overflow-hidden' >
+                                Loading...
+                            </div>
+
+                        </>
+
 
                         :
 
