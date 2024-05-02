@@ -409,7 +409,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                             </div>
 
 
-                            <div className='text-blue-100  text-center font-extrabold text-4xl w-full h-[5rem] lg:h-[2.5rem] overflow-hidden' >
+                            <div className='text-blue-100  text-center font-extrabold text-4xl md:text-xl w-full h-[5rem] lg:h-[2.5rem] overflow-hidden' >
                                 Loading...
                             </div>
 
@@ -418,13 +418,13 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
                         :
 
-                        <div className='flex justify-center items-center h-[5rem] lg:h-[2.5rem] w-full gap-1'>
+                        <div className='flex justify-center items-center sm:justify-evenly h-[5rem] lg:h-[2.5rem] w-full gap-1'>
                             <div className='text-blue-100 font-extrabold text-center  text-xl w-[1rem] hidden  h-[5rem] lg:h-[2.5rem] overflow-hidden'
                                 ref={popNameRef} >
                             </div>
 
                             <select
-                                className={`${loading && 'hidden'} bg-white text-gray-700 sm:text-4xl border border-gray-300 rounded-3xl lg:w-72 w-full  h-[5rem] lg:h-[2.5rem] self-center`}
+                                className={`${loading && 'hidden'} bg-white text-gray-700 sm:text-4xl md:text-xl border border-gray-300 rounded-3xl lg:w-72 w-full  h-[5rem] lg:h-[2.5rem] self-center`}
                                 onChange={(e) => { selectWebcam(e.target.value) }}
                             >
 
@@ -439,7 +439,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                             <button
                                 ref={null}
                                 onClick={() => toggleCamera()}
-                                className={`${loading && 'hidden'}  bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white border border-blue-500 hover:border-transparent rounded-3xl text-3xl h-[5rem] lg:h-[2.5rem] mr-5 min-w-[7rem] w-44 self-center hover:scale-125 transition-all`} >
+                                className={`${loading && 'hidden'}  bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white border border-blue-500 hover:border-transparent rounded-3xl text-3xl md:text-xl h-[5rem] lg:h-[2.5rem] mr-5 min-w-[7rem] w-44 self-center hover:scale-125 transition-all`} >
                                 {videoPlaying ? 'Stop' : 'Start'}
                             </button>
 
