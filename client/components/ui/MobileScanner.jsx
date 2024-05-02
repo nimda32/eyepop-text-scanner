@@ -368,16 +368,16 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
 
     return (
-        <div className=' overscroll-none flex flex-col items-center justify-between h-full '>
+        <div className=' overscroll-none flex flex-col items-center justify-between h-full overflow-hidden'>
 
-            <div className={`overscroll-none absolute left-0 top-0 w-full h-full p-0 justify-center `} >
+            <div className={`overscroll-none absolute left-0 top-0 w-full h-full p-0 justify-center overflow-hidden`} >
 
                 <MaskCanvas
                     maskRef={maskRef}
                     maskRect={maskRect}
                     maskSize={maskSize}
                     id="mask-canvas"
-                    className={`${sharedClass} fixed top-0 left-0 w-full h-full flex justify-center p-0`}
+                    className={`${sharedClass} fixed top-0 left-0 w-full h-full flex justify-center p-0  overscroll-none`}
                 ></MaskCanvas>
 
                 <canvas
@@ -385,7 +385,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                     ref={resultCanvasRef}
                     width={window.innerWidth}
                     height={window.innerHeight}
-                    className={`${sharedClass}`}
+                    className={`${sharedClass}  overscroll-none`}
                 ></canvas>
 
                 <canvas
@@ -393,7 +393,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                     ref={compositionCanvasRef}
                     width={window.innerWidth}
                     height={window.innerHeight}
-                    className={`${sharedClass} hidden`}
+                    className={`${sharedClass} hidden  overscroll-none`}
                 ></canvas>
 
                 <video
@@ -407,9 +407,9 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             </div>
 
             <div
-                className={`overscroll-none ${loading ? 'h-0' : 'h-[15rem] sm:h-[10rem] lg:h-[5rem]'} transition-all duration-500 z-10 ${marginsStyle} bg-blue-400 flex justify-center items-center rounded-3xl shadow-2xl `}>
+                className={`overscroll-none ${loading ? 'h-0' : 'h-[15rem] sm:h-[10rem] lg:h-[5rem]'} transition-all duration-500 z-10 ${marginsStyle} bg-blue-400 flex justify-center items-center rounded-3xl shadow-2xl overflow-hidden`}>
 
-                <div className='h-full flex justify-center items-center text-center'>
+                <div className=' overscroll-none h-full flex justify-center items-center text-center'>
 
                     {loading ?
 
@@ -471,7 +471,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             </div>
 
             {loading && (
-                <div className="absolute top-0 left-0 w-screen h-screen flex justify-center items-center bg-gray-500 bg-opacity-50 overflow-hidden">
+                <div className="absolute top-0 left-0 w-screen h-screen flex justify-center items-center bg-gray-500 bg-opacity-50 overflow-hidden overscroll-none">
                     <div className='w-full h-full animate-spin flex justify-center items-center '>
                         <FontAwesomeIcon icon={faSpinner} className="text-white text-6xl w-[7rem] sm:w-[5rem] h-[7rem] sm:h-[5rem]" />
                     </div>
