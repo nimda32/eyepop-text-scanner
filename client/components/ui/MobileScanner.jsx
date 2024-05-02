@@ -1,6 +1,6 @@
 import React, { useEffect, useState, videoRef, resultCanvasRef, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCamera, faCancel, faGear, faRepeat } from '@fortawesome/free-solid-svg-icons';
+import { faCamera, faCancel, faGear, faRepeat, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { EyePop } from "@eyepop.ai/eyepop";
 import { Render2d } from '@eyepop.ai/eyepop-render-2d';
 import MaskCanvas, { drawGradient } from './MaskCanvas';
@@ -14,7 +14,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 {
 
     const sharedClass = 'object-contain h-full w-full d-block aboslute flex-none';
-    const marginsStyle = 'p-4 mr-[5rem] ml-[5rem] mt-[1rem]';
+    const marginsStyle = 'p-4 lg:mr-[5rem] lg:ml-[5rem] mt-[1rem] ml-0 mr-0 w-full lg:w-[40rem]';
     const settingsRef = useRef();
     const compositionCanvasRef = useRef();
     const maskRef = useRef();
@@ -215,12 +215,12 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                     maskCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
                     maskCtx.putImageData(maskCopy, 0, 0);
                     maskCtx.drawImage(compositionCanvasRef.current, 0, 0, compositionCanvasRef.current.width, compositionCanvasRef.current.height);
-
+                    setLoading(false);
                 }
 
             }).catch((error) =>
             {
-                setPredictionDrawn(false);
+                setLoading(false);
             });
 
     }
@@ -287,14 +287,15 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
         let x, y;
         const offsetY = (parentHeight - scaledHeight) / 2;
+        const offsetX = (parentWidth - scaledWidth) / 2;
 
         if (e.type === 'mousedown' || e.type === 'mousemove')
         {
-            x = (e.clientX - rect.left) * scaleFactor;
+            x = ((e.clientX - rect.left) * scaleFactor) - offsetX;
             y = ((e.clientY - rect.top) * scaleFactor) - offsetY;
         } else if (e.type === 'touchstart' || e.type === 'touchmove')
         {
-            x = (e.touches[ 0 ].clientX - rect.left) * scaleFactor;
+            x = ((e.touches[ 0 ].clientX - rect.left) * scaleFactor) - offsetX;
             y = ((e.touches[ 0 ].clientY - rect.top) * scaleFactor) - offsetY;
         }
 
@@ -357,7 +358,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
 
     return (
-        <div className='flex flex-col items-center justify-between h-full'>
+        <div className='flex flex-col items-center justify-between h-full '>
 
             <div className={`absolute left-0 top-0 w-full h-full p-0 justify-center `} >
 
@@ -396,20 +397,19 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             </div>
 
             <div
-                className={`${loading ? 'h-0' : 'h-[5rem]'} transition-all duration-500 z-10 ${marginsStyle} bg-blue-400 flex flex-col justify-center items-center rounded-3xl shadow-2xl`}>
+                className={`overscroll-none ${loading ? 'h-0' : 'h-[10rem] lg:h-[5rem]'} transition-all duration-500 z-10 ${marginsStyle} bg-blue-400 flex justify-center items-center rounded-3xl shadow-2xl `}>
 
                 <div className='h-full flex justify-center items-center text-center'>
-
 
                     {loading ?
 
                         <>
-                            <div className='text-blue-100  text-center font-extrabold text-xl w-[7rem] h-[2.5rem] pt-2 overflow-hidden hidden'
+                            <div className='text-blue-100  text-center font-extrabold text-xl w-[1rem] h-[5rem] lg:h-[2.5rem] pt-2 overflow-hidden hidden '
                                 ref={popNameRef} >
                             </div>
 
 
-                            <div className='text-blue-100  text-center font-extrabold text-xl w-[7rem] h-[2.5rem] pt-2 overflow-hidden' >
+                            <div className='text-blue-100  text-center font-extrabold text-4xl w-full h-[5rem] lg:h-[2.5rem] overflow-hidden' >
                                 Loading...
                             </div>
 
@@ -418,13 +418,13 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
                         :
 
-                        <div className='flex justify-center items-center h-[2.5rem] w-full gap-1'>
-                            <div className='text-blue-100 font-extrabold text-center  text-xl w-[7rem] h-[2.5rem] overflow-hidden'
+                        <div className='flex justify-center items-center h-[5rem] lg:h-[2.5rem] w-full gap-1'>
+                            <div className='text-blue-100 font-extrabold text-center  text-xl w-[1rem] hidden  h-[5rem] lg:h-[2.5rem] overflow-hidden'
                                 ref={popNameRef} >
                             </div>
 
                             <select
-                                className={`${loading && 'hidden'} bg-white text-gray-700 border border-gray-300 rounded-3xl w-72   h-[2.5rem] self-center`}
+                                className={`${loading && 'hidden'} bg-white text-gray-700 sm:text-4xl border border-gray-300 rounded-3xl lg:w-72 w-full  h-[5rem] lg:h-[2.5rem] self-center`}
                                 onChange={(e) => { selectWebcam(e.target.value) }}
                             >
 
@@ -439,11 +439,11 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                             <button
                                 ref={null}
                                 onClick={() => toggleCamera()}
-                                className={`${loading && 'hidden'}  bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white border border-blue-500 hover:border-transparent rounded-3xl h-[2.5rem] mr-5 min-w-[7rem] w-44 self-center hover:scale-125 transition-all`} >
+                                className={`${loading && 'hidden'}  bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white border border-blue-500 hover:border-transparent rounded-3xl text-3xl h-[5rem] lg:h-[2.5rem] mr-5 min-w-[7rem] w-44 self-center hover:scale-125 transition-all`} >
                                 {videoPlaying ? 'Stop' : 'Start'}
                             </button>
 
-                            <div className="bg-gray-800 flex h-[2.5rem] w-12 justify-center items-center rounded-full shadow-2xl p-2 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
+                            <div className="bg-gray-800 flex h-[5rem] lg:h-[2.5rem] w-[5rem] lg:w-[2.5rem]  justify-center items-center rounded-full shadow-2xl p-2 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
                                 onClick={() =>
                                 {
                                     if (settingsRef.current)
@@ -460,14 +460,22 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                 </div>
             </div>
 
+            {loading && (
+                <div className="absolute top-0 left-0 w-screen h-screen flex justify-center items-center bg-gray-500 bg-opacity-50 overflow-hidden">
+                    <div className='w-full h-full animate-spin flex justify-center items-center '>
+                        <FontAwesomeIcon icon={faSpinner} className="text-white text-3xl w-[5rem] h-[5rem]" />
+                    </div>
+                </div>
+            )}
+
             <SettingsDialog ref={settingsRef} setModel={setModel} showModelSelector={popUUID} setPopUUID={setPopUUID} />
 
-            <div className="bg-blue-400 flex h-[10rem] w-[10rem] justify-center m-5 items-center rounded-full shadow-2xl p-5 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
+            <div className="bg-blue-400 flex h-[8rem] w-[8rem] justify-center m-5 items-center rounded-full shadow-2xl p-5 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
                 onClick={() =>
                 {
                     setMaskRect({ x: maskRect.x + 1, y: maskRect.y + 1, width: maskRect.width - 1, height: maskRect.height - 1 });
                     startInference();
-
+                    setLoading(true);
                 }}>
                 <FontAwesomeIcon className='text-blue-100 rounded-full p-2 w-full h-full' icon={faCamera} />
             </div>

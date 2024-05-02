@@ -10,7 +10,7 @@ const SettingsDialog = React.forwardRef((props, ref) => (
             {props.showModelSelector && <ModelSlector className={`h-full`} setModel={props.setModel} />}
 
             <div className="flex flex-col w-full">
-                <label htmlFor="popUuid" className="text-white">POP UUID:</label>
+                <label htmlFor="popUuid" className="text-white text-4xl mb-3">POP UUID:</label>
                 <input type="text" id="popUuid" name="popUuid" className="input-field input bg-gray-950 text-white"
                     onChange={(e) => { props.setPopUUID(e.target.value) }} />
             </div>
