@@ -1,10 +1,10 @@
 import React from "react";
-import { Index } from "./components/Index.jsx";
+import { Main } from "./components/Main.jsx";
 import "./styles.css";
 
 export function createApp()
 {
     return (
-        <Index />
+        <Main />
     )
 }

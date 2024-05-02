@@ -22,6 +22,7 @@ const config = {
     assetsInclude: [ '**/*.mp4', '**/*.webm' ],
     plugins: plugins,
     build: {
+        outDir: '../dist/',
         rollupOptions: {
             output: {
                 entryFileNames: 'index.js',

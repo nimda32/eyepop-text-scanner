@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import MobileScanner from './ui/MobileScanner.jsx';
 
-export function Index()
+export function Main()
 {
 
     const resultCanvasRef = useRef();
