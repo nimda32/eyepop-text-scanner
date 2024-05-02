@@ -6,6 +6,8 @@ import { Render2d } from '@eyepop.ai/eyepop-render-2d';
 import MaskCanvas, { drawGradient } from './MaskCanvas';
 import SettingsDialog from './SettingsDialog';
 import { inferStrings } from '../src/EyePopManager';
+import { ResultsModal } from './ResultsModal';
+import { search, fuzzy } from 'fast-fuzzy';
 
 let isDrawing = false;
 
@@ -17,6 +19,11 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
     const settingsRef = useRef();
     const compositionCanvasRef = useRef();
     const maskRef = useRef();
+
+    // results for the alcohol search
+    const resultModalRef = useRef();
+    const [ searchTerm, setSearchTerm ] = useState('');
+    const [ croppedImage, setCroppedImage ] = useState(null);
 
     const [ loading, setLoading ] = useState(true);
     const [ eyePopEndpoint, setEyePopEndpoint ] = useState(null);
@@ -224,6 +231,10 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                         maskCtx.putImageData(maskCopy, 0, 0);
                         maskCtx.drawImage(compositionCanvasRef.current, 0, 0, compositionCanvasRef.current.width, compositionCanvasRef.current.height);
                         setLoading(false);
+
+                        let croppedImage = maskCtx.getImageData(maskRect.x, maskRect.y, maskRect.width, maskRect.height);
+
+                        fuzzyDetectName(maskRect, result, croppedImage);
                     }
 
                 }).catch((error) =>
@@ -231,6 +242,69 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                     setLoading(false);
                 });
 
+        }
+
+    }
+
+    const fuzzyDetectName = (maskRect, resultObject, croppedImage) =>
+    {
+        const names = [
+            "la croix",
+            "titos",
+            "jameson",
+            "grey goose",
+            "patron",
+            "hendricks",
+            "jack daniels",
+        ];
+
+        for (let i = 0; i < resultObject.objects.length; i++)
+        {
+            const child = resultObject.objects[ i ];
+
+            if (!('labels' in child))
+            {
+                continue
+            }
+
+            for (let j = 0; j < child.labels.length; j++)
+            {
+                const obj = child.labels[ j ];
+                let label = obj?.label;
+
+                // remove any special characters from label
+                label = label.replace(/[^a-zA-Z ]/g, "");
+
+                if (!label) continue;
+
+                const objPosition = { x: child.x, y: child.y, width: child.width, height: child.height };
+                const isObjectContainedInMask = objPosition.x >= maskRect.x && objPosition.y >= maskRect.y && objPosition.x + objPosition.width <= maskRect.x + maskRect.width && objPosition.y + objPosition.height <= maskRect.y + maskRect.height;
+
+                if (!isObjectContainedInMask) continue;
+
+                // use fast fuzzy to find the closest match
+                const result = search(label, names, { returnMatchData: true });
+                console.log('Fuzzy result:', result);
+
+                if (result.length === 0) continue;
+
+
+                console.log('Fuzzy result:', result);
+
+                const matchString = result[ 0 ].item;
+
+                // was there at least half the characters that matched?
+                const isMatch = result[ 0 ].match.length >= (matchString.length / 2);
+
+                if (!isMatch) continue;
+
+                setSearchTerm(matchString);
+                resultModalRef.current.showModal();
+                setCroppedImage(croppedImage);
+
+                return;
+
+            }
         }
 
     }
@@ -438,7 +512,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
                         :
 
-                        <div className='flex justify-center items-center sm:justify-evenly h-full w-full gap-1'>
+                        <div className='flex justify-center items-center h-full w-full gap-1'>
 
 
                             <div className='text-blue-100  text-center font-extrabold text-4xl pt-2 overflow-hidden hidden '
@@ -489,13 +563,15 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                 </div>
             )}
 
+            <ResultsModal resultModalRef={resultModalRef} searchTerm={searchTerm} croppedImage={croppedImage} maskRect={maskRect} />
+
             <SettingsDialog ref={settingsRef} setModel={setModel} showModelSelector={popUUID} setPopUUID={setPopUUID} setPopSecret={setPopSecret} />
 
             {!loading && (
                 <div className="bg-blue-400 flex h-[8rem] w-[8rem] justify-center m-5 items-center rounded-full shadow-2xl p-5 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
                     onClick={() =>
                     {
-                        setMaskRect({ x: maskRect.x + 1, y: maskRect.y + 1, width: maskRect.width - 1, height: maskRect.height - 1 });
+                        setMaskRect({ x: maskRect.x - 1, y: maskRect.y - 1, width: maskRect.width + 1, height: maskRect.height + 1 });
                         startInference();
                         setLoading(true);
                     }}>
