@@ -201,7 +201,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                     compositionCanvasRef.current.width = scaledWidth;
                     compositionCanvasRef.current.height = scaledHeight;
 
-                    compositionCtx.globalAlpha = 0.5;
+                    compositionCtx.globalAlpha = 0.95;
                     compositionCtx.drawImage(videoRef.current, 0, 0, scaledWidth, scaledHeight);
                     compositionCtx.globalAlpha = 1;
 

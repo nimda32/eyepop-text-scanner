@@ -33,7 +33,7 @@ const SettingsDialog = React.forwardRef((props, ref) =>
                         popId &&
                         popSecret &&
                         <button className="btn btn-primary text-4xl" onClick={() => { props.setPopUUID(popId); props.setPopSecret(popSecret); }}>
-                            Continue
+                            Save
                         </button>
                     }
                 </div>
