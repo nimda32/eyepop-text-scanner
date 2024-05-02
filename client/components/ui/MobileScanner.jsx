@@ -13,7 +13,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 {
 
     const sharedClass = 'object-contain h-full w-full d-block aboslute flex-none';
-    const marginsStyle = 'p-4 lg:mr-[5rem] lg:ml-[5rem] mt-[1rem] ml-0 mr-0 w-full lg:w-[40rem]';
+    const marginsStyle = 'p-4 mt-[2rem] ml-0 mr-0 w-full w-[40rem]';
     const settingsRef = useRef();
     const compositionCanvasRef = useRef();
     const maskRef = useRef();
@@ -274,6 +274,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
     }
 
     let startX, startY;
+
     const handleDynamicBoxDraw = (e) =>
     {
         if (!canvasCtx) return;
@@ -290,7 +291,11 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
         resultCanvasRef.current.width = scaledWidth;
         resultCanvasRef.current.height = scaledHeight;
-        setMaskSize({ width: scaledWidth, height: scaledHeight })
+
+        if (maskSize.width === window.innerWidth && maskSize.height === window.innerHeight)
+        {
+            setMaskSize({ width: scaledWidth, height: scaledHeight })
+        }
 
 
         const rect = resultCanvasRef.current.getBoundingClientRect();
@@ -308,6 +313,9 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             x = ((e.touches[ 0 ].clientX - rect.left) * scaleFactor) - offsetX;
             y = ((e.touches[ 0 ].clientY - rect.top) * scaleFactor) - offsetY;
         }
+
+        // if x or y is not in the canvas return
+        if (x < 0 || y < 0 || x > scaledWidth || y > scaledHeight) return;
 
         canvasCtx.strokeStyle = 'blue';
         canvasCtx.lineWidth = 2;
@@ -327,6 +335,9 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                 canvasCtx.stroke();
             }
 
+            // if the size of the mask is too small return
+            if (x - startX < scaledWidth / 6 || y - startY < scaledHeight / 6) return;
+
             setMaskRect({
                 x: startX,
                 y: startY,
@@ -337,7 +348,6 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
         } else if (e.type === 'mouseup' || e.type === 'touchend')
         {
             isDrawing = false;
-
         }
     }
 
@@ -407,7 +417,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             </div>
 
             <div
-                className={`overscroll-none ${loading ? 'h-0' : 'h-[15rem] sm:h-[10rem] lg:h-[5rem]'} transition-all duration-500 z-10 ${marginsStyle} bg-blue-400 flex justify-center items-center rounded-3xl shadow-2xl overflow-hidden`}>
+                className={`overscroll-none ${loading ? 'h-0' : 'h-[6.5rem]'} transition-all duration-500 z-10 ${marginsStyle} bg-blue-400 flex justify-center items-center rounded-3xl shadow-2xl overflow-hidden`}>
 
                 <div className=' overscroll-none h-full flex justify-center items-center text-center'>
 
@@ -419,7 +429,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                             </div>
 
 
-                            <div className='text-blue-100  text-center font-extrabold text-4xl overflow-hidden' >
+                            <div className='text-blue-100 m-5 text-center font-extrabold text-2xl overflow-hidden' >
                                 Loading...
                             </div>
 
@@ -429,6 +439,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                         :
 
                         <div className='flex justify-center items-center sm:justify-evenly h-full w-full gap-1'>
+
 
                             <div className='text-blue-100  text-center font-extrabold text-4xl pt-2 overflow-hidden hidden '
                                 ref={popNameRef} >
