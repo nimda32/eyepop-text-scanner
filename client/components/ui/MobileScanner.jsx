@@ -98,8 +98,6 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
         let animationLoop = null;
         const blitVideoAnimation = () =>
         {
-            //if (!isDrawing)
-            //{
             const source_height = videoRef.current.videoHeight;
             const source_width = videoRef.current.videoWidth;
 
@@ -114,7 +112,6 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             resultCanvasRef.current.height = scaledHeight;
 
             ctx.drawImage(videoRef.current, 0, 0, scaledWidth, scaledHeight);
-            //}
 
             animationLoop = requestAnimationFrame(blitVideoAnimation);
         }
