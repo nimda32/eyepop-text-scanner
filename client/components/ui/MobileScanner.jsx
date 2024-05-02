@@ -209,7 +209,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
                         compositionCtx.globalAlpha = 0.95;
                         // draw the dataUrl png content image to the composition canvas
-                        compositionCtx.drawImage(newImage, 0, 0, scaledWidth, scaledHeight);
+                        compositionCtx.drawImage(newImage, 0, 0, resultCanvasRef.current.width, resultCanvasRef.current.height);
                         compositionCtx.globalAlpha = 1;
 
                         remoteRender.draw(result);
