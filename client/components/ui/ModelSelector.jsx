@@ -9,14 +9,14 @@ const ModelSlector = ({ className, setModel }) =>
 
         <div className={`${className} flex w-full justify-center items-center`}>
             <div
-                className="flex h-full justify-center items-center ml-2 pr-2 rounded-b-xlbg-blue-400">
+                className="flex h-full text-2xl justify-center items-center ml-2 pr-2 rounded-b-xlbg-blue-400">
 
-                <h5 className="text-xl text-center text-white">Select Model:</h5>
+                <h5 className="text-2xl text-center text-white">Select Model:</h5>
 
                 <select
                     ref={modelSelectionRef}
                     onChange={() => { setModel(modelSelectionRef.current.value); }}
-                    className="btn select select-bordered outline border-black max-w-xs w-1/2 m-5 text-white rounded-xl transition-all bg-black hover:bg-purple-500 hover:text-white"
+                    className="btn select select-bordered outline border-black max-w-xs w-1/2 m-5 text-2xl text-white rounded-xl transition-all bg-black hover:bg-purple-500 hover:text-white"
                 >
 
                     <option className='text-white bg-black' value="peopleCommon">People + Common Objects</option>

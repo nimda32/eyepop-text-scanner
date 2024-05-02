@@ -6,7 +6,6 @@ import { Render2d } from '@eyepop.ai/eyepop-render-2d';
 import MaskCanvas, { drawGradient } from './MaskCanvas';
 import SettingsDialog from './SettingsDialog';
 import { inferStrings } from '../src/EyePopManager';
-import EyePopVisuals from './EyePopVisuals';
 
 let isDrawing = false;
 
@@ -25,6 +24,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
     const [ selectedWebcam, setSelectedWebcam ] = useState(null);
     const [ videoPlaying, setVideoPlaying ] = useState(false);
     const [ popUUID, setPopUUID ] = useState(null);
+    const [ popSecret, setPopSecret ] = useState(null);
 
     const [ canvasCtx, setCanvasCtx ] = useState(null);
     const [ maskRect, setMaskRect ] = useState({ x: 0, y: 0, width: window.innerWidth, height: window.innerHeight });
@@ -51,7 +51,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
         if (!videoRef.current) return;
         if (!settingsRef.current) return;
 
-        if (!popUUID)
+        if (!popUUID || !popSecret)
         {
             settingsRef.current.showModal();
             return;
@@ -70,7 +70,8 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                 // Set the endpoint
                 const endpoint = await EyePop.endpoint({
                     popId: popUUID,
-                    auth: { oAuth2: true },
+                    auth: { secretKey: popSecret },
+                    eyepopUrl: 'https://staging-api.eyepop.ai',
                 }).onStateChanged((from, to) =>
                 {
                     console.log("Endpoint state transition from " + from + " to " + to);
@@ -358,9 +359,9 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
 
     return (
-        <div className='flex flex-col items-center justify-between h-full '>
+        <div className=' overscroll-none flex flex-col items-center justify-between h-full '>
 
-            <div className={`absolute left-0 top-0 w-full h-full p-0 justify-center `} >
+            <div className={`overscroll-none absolute left-0 top-0 w-full h-full p-0 justify-center `} >
 
                 <MaskCanvas
                     maskRef={maskRef}
@@ -397,19 +398,19 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             </div>
 
             <div
-                className={`overscroll-none ${loading ? 'h-0' : 'h-[10rem] lg:h-[5rem]'} transition-all duration-500 z-10 ${marginsStyle} bg-blue-400 flex justify-center items-center rounded-3xl shadow-2xl `}>
+                className={`overscroll-none ${loading ? 'h-0' : 'h-[15rem] sm:h-[10rem] lg:h-[5rem]'} transition-all duration-500 z-10 ${marginsStyle} bg-blue-400 flex justify-center items-center rounded-3xl shadow-2xl `}>
 
                 <div className='h-full flex justify-center items-center text-center'>
 
                     {loading ?
 
                         <>
-                            <div className='text-blue-100  text-center font-extrabold text-xl w-[1rem] h-[5rem] lg:h-[2.5rem] pt-2 overflow-hidden hidden '
+                            <div className='text-blue-100  text-center font-extrabold text-4xl pt-2 overflow-hidden hidden '
                                 ref={popNameRef} >
                             </div>
 
 
-                            <div className='text-blue-100  text-center font-extrabold text-4xl md:text-xl w-full h-[5rem] lg:h-[2.5rem] overflow-hidden' >
+                            <div className='text-blue-100  text-center font-extrabold text-4xl overflow-hidden' >
                                 Loading...
                             </div>
 
@@ -418,13 +419,13 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
                         :
 
-                        <div className='flex justify-center items-center sm:justify-evenly h-[5rem] lg:h-[2.5rem] w-full gap-1'>
-                            <div className='text-blue-100 font-extrabold text-center  text-xl w-[1rem] hidden  h-[5rem] lg:h-[2.5rem] overflow-hidden'
+                        <div className='flex justify-center items-center sm:justify-evenly h-full w-full gap-1'>
+
+                            <div className='text-blue-100  text-center font-extrabold text-4xl pt-2 overflow-hidden hidden '
                                 ref={popNameRef} >
                             </div>
-
                             <select
-                                className={`${loading && 'hidden'} bg-white text-gray-700 sm:text-4xl md:text-xl border border-gray-300 rounded-3xl lg:w-72 w-full  h-[5rem] lg:h-[2.5rem] self-center`}
+                                className={`${loading && 'hidden'} bg-white text-gray-700 text-6xl md:text-xl border border-gray-300 rounded-3xl lg:w-72 w-full  h-full self-center`}
                                 onChange={(e) => { selectWebcam(e.target.value) }}
                             >
 
@@ -439,11 +440,11 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                             <button
                                 ref={null}
                                 onClick={() => toggleCamera()}
-                                className={`${loading && 'hidden'}  bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white border border-blue-500 hover:border-transparent rounded-3xl text-3xl md:text-xl h-[5rem] lg:h-[2.5rem] mr-5 min-w-[7rem] w-44 self-center hover:scale-125 transition-all`} >
+                                className={`${loading && 'hidden'}  bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white border border-blue-500 hover:border-transparent rounded-3xl text-6xl md:text-xl h-full mr-5 min-w-[7rem] w-44 self-center hover:scale-125 transition-all`} >
                                 {videoPlaying ? 'Stop' : 'Start'}
                             </button>
 
-                            <div className="bg-gray-800 flex h-[5rem] lg:h-[2.5rem] w-[5rem] lg:w-[2.5rem]  justify-center items-center rounded-full shadow-2xl p-2 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
+                            <div className="bg-gray-800 flex h-full min-w-[5rem] w-[7rem] sm:w-[5rem] lg:w-[2.5rem]  justify-center items-center rounded-full shadow-2xl p-2 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
                                 onClick={() =>
                                 {
                                     if (settingsRef.current)
@@ -463,12 +464,12 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             {loading && (
                 <div className="absolute top-0 left-0 w-screen h-screen flex justify-center items-center bg-gray-500 bg-opacity-50 overflow-hidden">
                     <div className='w-full h-full animate-spin flex justify-center items-center '>
-                        <FontAwesomeIcon icon={faSpinner} className="text-white text-3xl w-[5rem] h-[5rem]" />
+                        <FontAwesomeIcon icon={faSpinner} className="text-white text-6xl w-[7rem] sm:w-[5rem] h-[7rem] sm:h-[5rem]" />
                     </div>
                 </div>
             )}
 
-            <SettingsDialog ref={settingsRef} setModel={setModel} showModelSelector={popUUID} setPopUUID={setPopUUID} />
+            <SettingsDialog ref={settingsRef} setModel={setModel} showModelSelector={popUUID} setPopUUID={setPopUUID} setPopSecret={setPopSecret} />
 
             <div className="bg-blue-400 flex h-[8rem] w-[8rem] justify-center m-5 items-center rounded-full shadow-2xl p-5 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
                 onClick={() =>
