@@ -396,7 +396,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             </div>
 
             <div
-                className={`${loading ? 'h-0' : 'h-20'} transition-all duration-500 z-10 ${marginsStyle} bg-blue-400 flex flex-col justify-center items-center rounded-3xl shadow-2xl`}>
+                className={`${loading ? 'h-0' : 'h-[5rem]'} transition-all duration-500 z-10 ${marginsStyle} bg-blue-400 flex flex-col justify-center items-center rounded-3xl shadow-2xl`}>
 
                 <div className='h-full flex justify-center items-center text-center'>
 
@@ -404,12 +404,12 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                     {loading ?
 
                         <>
-                            <div className='text-blue-100  text-center font-extrabold text-xl w-32 h-10 pt-2 overflow-hidden hidden'
+                            <div className='text-blue-100  text-center font-extrabold text-xl w-[7rem] h-[2.5rem] pt-2 overflow-hidden hidden'
                                 ref={popNameRef} >
                             </div>
 
 
-                            <div className='text-blue-100  text-center font-extrabold text-xl w-32 h-10 pt-2 overflow-hidden' >
+                            <div className='text-blue-100  text-center font-extrabold text-xl w-[7rem] h-[2.5rem] pt-2 overflow-hidden' >
                                 Loading...
                             </div>
 
@@ -418,13 +418,13 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
                         :
 
-                        <div className='flex justify-center items-center h-12 w-full gap-1'>
-                            <div className='text-blue-100 font-extrabold text-center  text-xl w-32 h-12 overflow-hidden'
+                        <div className='flex justify-center items-center h-[2.5rem] w-full gap-1'>
+                            <div className='text-blue-100 font-extrabold text-center  text-xl w-[7rem] h-[2.5rem] overflow-hidden'
                                 ref={popNameRef} >
                             </div>
 
                             <select
-                                className={`${loading && 'hidden'} bg-white text-gray-700 border border-gray-300 rounded-3xl w-72   h-12 self-center`}
+                                className={`${loading && 'hidden'} bg-white text-gray-700 border border-gray-300 rounded-3xl w-72   h-[2.5rem] self-center`}
                                 onChange={(e) => { selectWebcam(e.target.value) }}
                             >
 
@@ -439,11 +439,11 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                             <button
                                 ref={null}
                                 onClick={() => toggleCamera()}
-                                className={`${loading && 'hidden'}  bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white border border-blue-500 hover:border-transparent rounded-3xl h-12 mr-5 min-w-32 w-44 self-center hover:scale-125 transition-all`} >
+                                className={`${loading && 'hidden'}  bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white border border-blue-500 hover:border-transparent rounded-3xl h-[2.5rem] mr-5 min-w-[7rem] w-44 self-center hover:scale-125 transition-all`} >
                                 {videoPlaying ? 'Stop' : 'Start'}
                             </button>
 
-                            <div className="bg-gray-800 flex h-12 w-12 justify-center items-center rounded-full shadow-2xl p-2 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
+                            <div className="bg-gray-800 flex h-[2.5rem] w-12 justify-center items-center rounded-full shadow-2xl p-2 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
                                 onClick={() =>
                                 {
                                     if (settingsRef.current)
@@ -462,7 +462,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
             <SettingsDialog ref={settingsRef} setModel={setModel} showModelSelector={popUUID} setPopUUID={setPopUUID} />
 
-            <div className="bg-blue-400 flex h-20 w-20 justify-center m-5 items-center rounded-full shadow-2xl p-5 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
+            <div className="bg-blue-400 flex h-[10rem] w-[10rem] justify-center m-5 items-center rounded-full shadow-2xl p-5 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
                 onClick={() =>
                 {
                     setMaskRect({ x: maskRect.x + 1, y: maskRect.y + 1, width: maskRect.width - 1, height: maskRect.height - 1 });
