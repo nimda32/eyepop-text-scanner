@@ -68,7 +68,7 @@ def run(EYEPOP_POP_ID, EYEPOP_SECRET_KEY, EYEPOP_URL, logging_level=logging.ERRO
 
 
 # EyePop SDK configuration
-EYEPOP_POP_ID = '7798a7faaad645aeb7021b9c231c8dc2'
+EYEPOP_POP_ID = ''
 EYEPOP_SECRET_KEY = ''
 EYEPOP_SAGING_URL = 'https://staging-api.eyepop.ai'
 EYEPOP_URL = 'https://api.eyepop.ai'
@@ -76,7 +76,7 @@ EYEPOP_URL = 'https://api.eyepop.ai'
 args = ap.ArgumentParser()
 args.add_argument("--pop", type=str, default=None)
 args.add_argument("--key", type=str, default=None)
-args.add_argument("--staging", action="store_true")
+args.add_argument("--staging", action="store_true", default=True)
 args = args.parse_args()
 
 if args.pop:

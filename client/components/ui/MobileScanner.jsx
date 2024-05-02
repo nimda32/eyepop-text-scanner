@@ -171,58 +171,67 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
         const blob = new Blob([ new Uint8Array(array) ], { type: 'image/png' });
 
+        const compositionCtx = compositionCanvasRef.current.getContext('2d');
 
-        eyePopEndpoint
-            .process({ stream: blob, mimeType: 'image/png' })
-            .then(async (results) =>
-            {
-                const maskCtx = maskRef.current.getContext('2d');
-                const maskCopy = maskCtx.getImageData(0, 0, maskSize.width, maskSize.height);
-                const compositionCtx = compositionCanvasRef.current.getContext('2d');
+        const newImage = new Image();
+        newImage.src = dataUrl;
+        newImage.onload = () =>
+        {
 
-                const remoteRender = Render2d.renderer(compositionCtx, [
-                    Render2d.renderBox(),
-                    Render2d.renderKeypoints(),
-                ]);
 
-                for await (let result of results)
+            eyePopEndpoint
+                .process({ stream: blob, mimeType: 'image/png' })
+                .then(async (results) =>
                 {
-                    console.log('Result:', result);
-                    const { source_width, source_height } = result;
-                    const parentWidth = resultCanvasRef.current.parentElement.clientWidth;
-                    const parentHeight = resultCanvasRef.current.parentElement.clientHeight;
+                    const maskCtx = maskRef.current.getContext('2d');
+                    const maskCopy = maskCtx.getImageData(0, 0, maskSize.width, maskSize.height);
 
-                    const scaleFactor = Math.min(parentWidth / source_width, parentHeight / source_height);
-                    const scaledWidth = source_width * scaleFactor;
-                    const scaledHeight = source_height * scaleFactor;
+                    const remoteRender = Render2d.renderer(compositionCtx, [
+                        Render2d.renderBox(),
+                        Render2d.renderKeypoints(),
+                    ]);
 
-                    resultCanvasRef.current.width = scaledWidth;
-                    resultCanvasRef.current.height = scaledHeight;
-                    compositionCanvasRef.current.width = scaledWidth;
-                    compositionCanvasRef.current.height = scaledHeight;
+                    for await (let result of results)
+                    {
+                        console.log('Result:', result);
+                        const { source_width, source_height } = result;
+                        const parentWidth = resultCanvasRef.current.parentElement.clientWidth;
+                        const parentHeight = resultCanvasRef.current.parentElement.clientHeight;
 
-                    compositionCtx.globalAlpha = 0.95;
-                    compositionCtx.drawImage(videoRef.current, 0, 0, scaledWidth, scaledHeight);
-                    compositionCtx.globalAlpha = 1;
+                        const scaleFactor = Math.min(parentWidth / source_width, parentHeight / source_height);
+                        const scaledWidth = source_width * scaleFactor;
+                        const scaledHeight = source_height * scaleFactor;
 
-                    remoteRender.draw(result);
+                        resultCanvasRef.current.width = scaledWidth;
+                        resultCanvasRef.current.height = scaledHeight;
+                        compositionCanvasRef.current.width = scaledWidth;
+                        compositionCanvasRef.current.height = scaledHeight;
 
-                    // clear all the borders around the maskRect of the composition canvas
-                    compositionCtx.clearRect(0, 0, maskRect.x, maskRect.y + window.innerHeight);
-                    compositionCtx.clearRect(0, 0, window.innerWidth, maskRect.y);
-                    compositionCtx.clearRect(maskRect.x + maskRect.width, 0, window.innerWidth, window.innerHeight);
-                    compositionCtx.clearRect(maskRect.x, maskRect.y + maskRect.height, window.innerWidth, window.innerHeight);
+                        compositionCtx.globalAlpha = 0.95;
+                        // draw the dataUrl png content image to the composition canvas
+                        compositionCtx.drawImage(newImage, 0, 0, scaledWidth, scaledHeight);
+                        compositionCtx.globalAlpha = 1;
 
-                    maskCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-                    maskCtx.putImageData(maskCopy, 0, 0);
-                    maskCtx.drawImage(compositionCanvasRef.current, 0, 0, compositionCanvasRef.current.width, compositionCanvasRef.current.height);
+                        remoteRender.draw(result);
+
+                        // clear all the borders around the maskRect of the composition canvas
+                        compositionCtx.clearRect(0, 0, maskRect.x, maskRect.y + window.innerHeight);
+                        compositionCtx.clearRect(0, 0, window.innerWidth, maskRect.y);
+                        compositionCtx.clearRect(maskRect.x + maskRect.width, 0, window.innerWidth, window.innerHeight);
+                        compositionCtx.clearRect(maskRect.x, maskRect.y + maskRect.height, window.innerWidth, window.innerHeight);
+
+                        maskCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+                        maskCtx.putImageData(maskCopy, 0, 0);
+                        maskCtx.drawImage(compositionCanvasRef.current, 0, 0, compositionCanvasRef.current.width, compositionCanvasRef.current.height);
+                        setLoading(false);
+                    }
+
+                }).catch((error) =>
+                {
                     setLoading(false);
-                }
+                });
 
-            }).catch((error) =>
-            {
-                setLoading(false);
-            });
+        }
 
     }
 
@@ -471,15 +480,17 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
             <SettingsDialog ref={settingsRef} setModel={setModel} showModelSelector={popUUID} setPopUUID={setPopUUID} setPopSecret={setPopSecret} />
 
-            <div className="bg-blue-400 flex h-[8rem] w-[8rem] justify-center m-5 items-center rounded-full shadow-2xl p-5 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
-                onClick={() =>
-                {
-                    setMaskRect({ x: maskRect.x + 1, y: maskRect.y + 1, width: maskRect.width - 1, height: maskRect.height - 1 });
-                    startInference();
-                    setLoading(true);
-                }}>
-                <FontAwesomeIcon className='text-blue-100 rounded-full p-2 w-full h-full' icon={faCamera} />
-            </div>
+            {!loading && (
+                <div className="bg-blue-400 flex h-[8rem] w-[8rem] justify-center m-5 items-center rounded-full shadow-2xl p-5 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
+                    onClick={() =>
+                    {
+                        setMaskRect({ x: maskRect.x + 1, y: maskRect.y + 1, width: maskRect.width - 1, height: maskRect.height - 1 });
+                        startInference();
+                        setLoading(true);
+                    }}>
+                    <FontAwesomeIcon className='text-blue-100 rounded-full p-2 w-full h-full' icon={faCamera} />
+                </div>
+            )}
 
         </div>
     );
