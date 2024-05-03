@@ -204,6 +204,9 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
         const compositionCtx = compositionCanvasRef.current.getContext('2d');
 
+        setLabelsFound([]);
+        setMatchedString('');
+
         const newImage = new Image();
         newImage.src = dataUrl;
         newImage.onload = () =>
