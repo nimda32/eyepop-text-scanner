@@ -17,7 +17,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 {
 
     const sharedClass = 'object-contain h-full w-full d-block aboslute flex-none';
-    const marginsStyle = 'p-4 mt-[2rem] ml-0 mr-0 w-full w-[40rem]';
+    const marginsStyle = 'p-4 mt-[2rem] ml-5 mr-5 w-[40rem] md:ml-[10rem] md:mr-[10rem]';
     const settingsRef = useRef();
     const compositionCanvasRef = useRef();
     const maskRef = useRef();
@@ -190,6 +190,11 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
     const startInference = async () =>
     {
         console.log('Starting inference:', eyePopEndpoint);
+
+        if (videoRef.current.paused)
+        {
+            toggleCamera();
+        }
 
         const dataUrl = resultCanvasRef.current.toDataURL('image/png');
         const binary = atob(dataUrl.split(',')[ 1 ]);
@@ -579,7 +584,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                                 </div>
 
                                 <select
-                                    className={`${loading && 'hidden'} bg-white text-gray-700 text-4xl border border-gray-300 rounded-3xl lg:w-72 w-full  h-full self-center`}
+                                    className={`${loading && 'hidden'} bg-white text-gray-700 text-4xl border border-gray-300 rounded-3xl max-w[30rem] w-full  h-full self-center`}
                                     onChange={(e) => { selectWebcam(e.target.value) }}
                                 >
 
@@ -622,7 +627,6 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                         </div>
                     </div>
                 )}
-
 
                 <SettingsDialog ref={settingsRef} setModel={setModel} showModelSelector={popUUID} setPopUUID={setPopUUID} setPopSecret={setPopSecret} />
 
