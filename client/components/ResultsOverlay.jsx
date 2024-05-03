@@ -23,18 +23,15 @@ export const ResultsOverlay = ({ title, labelsList }) =>
 
                     <div className="z-20 flex flex-row gap-2 w-[80%] m-[10%]  flex-wrap   p-5 rounded-xl bg-gray-800">
                         <div className="text-4xl text-white"> Text found: </div>
-                        {labelsList.map((label, index) => (
-                            <a
-                                key={index}
-                                href={`https://www.google.com/search?q=${label}+cocktail+recipes`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-4xl text-blue-300 underline pointer-events-auto"
-                                style={{ overflowWrap: "break-word" }}
-                            >
-                                {label}
-                            </a>
-                        ))}
+                        <a
+                            href={`https://www.google.com/search?q=${labelsList.join(", ") + " cocktail recipe"}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-4xl text-blue-300 underline pointer-events-auto"
+                            style={{ overflowWrap: "break-word" }}
+                        >
+                            {labelsList.join(", ")}
+                        </a>
                     </div>
                 </div>}
         </>

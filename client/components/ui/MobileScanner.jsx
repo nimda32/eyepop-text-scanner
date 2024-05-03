@@ -130,13 +130,11 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                 isMaskInitialized = true;
                 const offsetY = (window.innerHeight - scaledHeight) / 2;
 
-                console.log('Setting mask rect:', { x: 50, y: 50, width: scaledWidth - 100, height: scaledHeight - 100, offsetX: 0, offsetY });
-
                 setMaskRect({
-                    x: 25,
-                    y: 25,
-                    width: scaledWidth - 50,
-                    height: scaledHeight - 50,
+                    x: (scaledWidth * .4),
+                    y: (scaledHeight * (.25 / 2)),
+                    width: scaledWidth - (scaledWidth * .8),
+                    height: scaledHeight - (scaledHeight * .25),
                     offsetX: 0,
                     offsetY: offsetY,
                 })
@@ -208,7 +206,6 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
         const blob = new Blob([ new Uint8Array(array) ], { type: 'image/png' });
 
         const compositionCtx = compositionCanvasRef.current.getContext('2d');
-
         setLabelsFound([]);
         setMatchedString('');
 
@@ -229,6 +226,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                         Render2d.renderBox(),
                         Render2d.renderKeypoints(),
                     ]);
+
 
                     for await (let result of results)
                     {
@@ -458,12 +456,16 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             // if the size of the mask is too small return
             if (Math.abs(x - startX) < (scaledWidth / 15) || Math.abs(y - startY) < (scaledHeight / 15))
             {
+
                 setMaskRect({
-                    x: 25,
-                    y: 25,
-                    width: scaledWidth - 50,
-                    height: scaledHeight - 50,
-                });
+                    x: (scaledWidth * .4),
+                    y: (scaledHeight * (.25 / 2)),
+                    width: scaledWidth - (scaledWidth * .8),
+                    height: scaledHeight - (scaledHeight * .25),
+                    offsetX: 0,
+                    offsetY: offsetY,
+                })
+
             } else
             {
                 setMaskRect({
