@@ -310,12 +310,13 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                 label = label.replace(/[^a-zA-Z ]/g, "");
 
                 if (!label) continue;
-                allLabels.push(label);
 
                 const objPosition = { x: child.x, y: child.y, width: child.width, height: child.height };
                 const isObjectContainedInMask = objPosition.x >= maskRect.x && objPosition.y >= maskRect.y && objPosition.x + objPosition.width <= maskRect.x + maskRect.width && objPosition.y + objPosition.height <= maskRect.y + maskRect.height;
 
                 if (!isObjectContainedInMask) continue;
+
+                allLabels.push(label);
 
                 // use fast fuzzy to find the closest match
                 const result = search(label, names, { returnMatchData: true });
@@ -447,7 +448,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             }
 
             // if the size of the mask is too small return
-            if (x - startX < scaledWidth / 6 || y - startY < scaledHeight / 6)
+            if (Math.abs(x - startX) < (scaledWidth / 15) || Math.abs(y - startY) < (scaledHeight / 15))
             {
                 setMaskRect({
                     x: 25,
