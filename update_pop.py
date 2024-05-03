@@ -68,8 +68,8 @@ def run(EYEPOP_POP_ID, EYEPOP_SECRET_KEY, EYEPOP_URL, logging_level=logging.ERRO
 
 
 # EyePop SDK configuration
-EYEPOP_POP_ID = ''
-EYEPOP_SECRET_KEY = ''
+EYEPOP_POP_ID = '95581bc77b2b4ce498b95ed545b9e860'
+EYEPOP_SECRET_KEY = 'AAGisBhdNU2Q8LGWTq4suaD2Z0FBQUFBQm1NOWN0NVVQX2JCWjNuazBMV0ctLTk1dzY2djVGeDVuZk43MmJ0bWlvNXpBN3VkeDhja1BOb1F5NWtxRnRheDB6emxCNzVJd3J6RGtnVXJocTdQcHJMenRxV2VmTmpwb3VEOUo1RkxoSTZ0bkZqUGM9'
 EYEPOP_SAGING_URL = 'https://staging-api.eyepop.ai'
 EYEPOP_URL = 'https://api.eyepop.ai'
 
@@ -82,14 +82,12 @@ args = args.parse_args()
 if args.pop:
     EYEPOP_POP_ID = args.pop
 else:
-    print("No pop id provided, exiting.")
-    exit()
+    print("No pop id provided, using default.")
 
 if args.key:
     EYEPOP_SECRET_KEY = args.key
 else:
-    print("No secret key provided, exiting.")
-    exit()
+    print("No secret key provided, using default.")
 
 if args.staging:
     EYEPOP_URL = EYEPOP_SAGING_URL

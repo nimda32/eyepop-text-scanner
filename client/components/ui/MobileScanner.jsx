@@ -107,6 +107,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
         setupEyePop();
 
         let animationLoop = null;
+        let isMaskInitialized = false;
         const blitVideoAnimation = () =>
         {
             const source_height = videoRef.current.videoHeight;
@@ -124,11 +125,31 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
             ctx.drawImage(videoRef.current, 0, 0, scaledWidth, scaledHeight);
 
+            if (!isMaskInitialized && scaledWidth && scaledHeight)
+            {
+                isMaskInitialized = true;
+                const offsetY = (window.innerHeight - scaledHeight) / 2;
+
+                console.log('Setting mask rect:', { x: 50, y: 50, width: scaledWidth - 100, height: scaledHeight - 100, offsetX: 0, offsetY });
+
+                setMaskRect({
+                    x: 25,
+                    y: 25,
+                    width: scaledWidth - 50,
+                    height: scaledHeight - 50,
+                    offsetX: 0,
+                    offsetY: offsetY,
+                })
+
+                setMaskSize({ width: scaledWidth, height: scaledHeight });
+            }
+
             animationLoop = requestAnimationFrame(blitVideoAnimation);
         }
 
         const startAnimation = () =>
         {
+            isMaskInitialized = false;
             animationLoop = requestAnimationFrame(blitVideoAnimation);
         }
 
@@ -217,7 +238,14 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                         compositionCanvasRef.current.width = scaledWidth;
                         compositionCanvasRef.current.height = scaledHeight;
 
-                        compositionCtx.globalAlpha = 0.95;
+                        let offsetY = 0;
+
+                        if (maskRect.width === window.innerWidth && maskRect.height === window.innerHeight)
+                        {
+                            offsetY = (window.innerHeight - scaledHeight) / 2;
+                        }
+
+                        compositionCtx.globalAlpha = 0.85;
                         // draw the dataUrl png content image to the composition canvas
                         compositionCtx.drawImage(newImage, 0, 0, resultCanvasRef.current.width, resultCanvasRef.current.height);
                         compositionCtx.globalAlpha = 1;
@@ -232,12 +260,12 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
                         maskCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
                         maskCtx.putImageData(maskCopy, 0, 0);
-                        maskCtx.drawImage(compositionCanvasRef.current, 0, 0, compositionCanvasRef.current.width, compositionCanvasRef.current.height);
-                        setLoading(false);
+                        maskCtx.drawImage(compositionCanvasRef.current, 0, offsetY, compositionCanvasRef.current.width, compositionCanvasRef.current.height);
+
 
                         let croppedImage = maskCtx.getImageData(maskRect.x, maskRect.y, maskRect.width, maskRect.height);
-
                         fuzzyDetectName(maskRect, result, croppedImage);
+                        setLoading(false);
                     }
 
                 }).catch((error) =>
@@ -353,21 +381,31 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
     }
 
+
+    const getCanvasSize = (canvas, parentWidth, parentHeight) =>
+    {
+        const source_width = canvas.width;
+        const source_height = canvas.height;
+
+        const scaleFactor = Math.min(parentWidth / source_width, parentHeight / source_height);
+        const scaledWidth = source_width * scaleFactor;
+        const scaledHeight = source_height * scaleFactor;
+        const offsetX = (parentWidth - scaledWidth) / 2;
+        const offsetY = (parentHeight - scaledHeight) / 2;
+
+        return { scaleFactor, scaledWidth, scaledHeight, offsetX, offsetY };
+    }
+
     let startX, startY;
 
     const handleDynamicBoxDraw = (e) =>
     {
         if (!canvasCtx) return;
 
-        const source_height = resultCanvasRef.current.height;
-        const source_width = resultCanvasRef.current.width;
-
         const parentWidth = resultCanvasRef.current.parentElement.clientWidth;
         const parentHeight = resultCanvasRef.current.parentElement.clientHeight;
 
-        const scaleFactor = Math.min(parentWidth / source_width, parentHeight / source_height);
-        const scaledWidth = source_width * scaleFactor;
-        const scaledHeight = source_height * scaleFactor;
+        const { scaleFactor, scaledWidth, scaledHeight, offsetX, offsetY } = getCanvasSize(resultCanvasRef.current, parentWidth, parentHeight);
 
         resultCanvasRef.current.width = scaledWidth;
         resultCanvasRef.current.height = scaledHeight;
@@ -377,8 +415,6 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
         const rect = resultCanvasRef.current.getBoundingClientRect();
 
         let x, y;
-        const offsetY = (parentHeight - scaledHeight) / 2;
-        const offsetX = (parentWidth - scaledWidth) / 2;
 
         if (e.type === 'mousedown' || e.type === 'mousemove')
         {
@@ -405,21 +441,31 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
         {
             if (isDrawing)
             {
-                //canvasCtx.clearRect(0, 0, resultCanvasRef.current.width, resultCanvasRef.current.height);
                 canvasCtx.beginPath();
                 canvasCtx.rect(startX, startY, x - startX, y - startY);
                 canvasCtx.stroke();
             }
 
             // if the size of the mask is too small return
-            if (x - startX < scaledWidth / 6 || y - startY < scaledHeight / 6) return;
-
-            setMaskRect({
-                x: startX,
-                y: startY,
-                width: x - startX,
-                height: y - startY,
-            });
+            if (x - startX < scaledWidth / 6 || y - startY < scaledHeight / 6)
+            {
+                setMaskRect({
+                    x: 25,
+                    y: 25,
+                    width: scaledWidth - 50,
+                    height: scaledHeight - 50,
+                });
+            } else
+            {
+                setMaskRect({
+                    x: startX,
+                    y: startY,
+                    width: x - startX,
+                    height: y - startY,
+                    offsetX: offsetX,
+                    offsetY: offsetY,
+                });
+            }
 
         } else if (e.type === 'mouseup' || e.type === 'touchend')
         {
@@ -573,8 +619,6 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                     </div>
                 )}
 
-                {/* <ResultsModal resultModalRef={resultModalRef} matchedString={matchedString} croppedImage={croppedImage} maskRect={maskRect} /> */}
-
 
                 <SettingsDialog ref={settingsRef} setModel={setModel} showModelSelector={popUUID} setPopUUID={setPopUUID} setPopSecret={setPopSecret} />
 
@@ -582,7 +626,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                     <div className="bg-blue-400 flex h-[8rem] w-[8rem] justify-center m-5 items-center rounded-full shadow-2xl p-5 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
                         onClick={() =>
                         {
-                            setMaskRect({ x: maskRect.x - 1, y: maskRect.y - 1, width: maskRect.width + 1, height: maskRect.height + 1 });
+                            setMaskRect({ ...maskRect });
                             startInference();
                             setLoading(true);
                         }}>

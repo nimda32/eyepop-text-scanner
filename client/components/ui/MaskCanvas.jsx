@@ -13,23 +13,9 @@ export const drawGradient = (ctx, width, height) =>
 const MaskCanvas = ({ maskRef, maskSize, maskRect, className, }) =>
 {
 
-
     useEffect(() =>
     {
         if (!maskRef.current) return;
-
-        // const source_height = maskRef.current.height;
-        // const source_width = maskRef.current.width;
-
-        // const parentWidth = maskRef.current.parentElement.clientWidth;
-        // const parentHeight = maskRef.current.parentElement.clientHeight;
-
-        // const scaleFactor = Math.min(parentWidth / source_width, parentHeight / source_height);
-        // const scaledWidth = source_width * scaleFactor;
-        // const scaledHeight = source_height * scaleFactor;
-
-        // maskRef.current.width = scaledWidth;
-        // maskRef.current.height = scaledHeight;
 
         const canvas = maskRef.current;
         canvas.width = maskSize.width;
@@ -53,8 +39,8 @@ const MaskCanvas = ({ maskRef, maskSize, maskRect, className, }) =>
             style={{
                 pointerEvents: 'none',
             }}
-            width={maskSize.width || window.innerWidth}
-            height={maskSize.height || window.innerHeight}
+            width={maskSize.width}
+            height={maskSize.height}
             className={className}
             ref={maskRef}
         />
