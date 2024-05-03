@@ -417,8 +417,6 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
         resultCanvasRef.current.width = scaledWidth;
         resultCanvasRef.current.height = scaledHeight;
 
-        setMaskSize({ width: scaledWidth, height: scaledHeight })
-
         const rect = resultCanvasRef.current.getBoundingClientRect();
 
         let x, y;
