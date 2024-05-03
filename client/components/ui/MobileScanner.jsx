@@ -25,7 +25,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
     // results for the alcohol search
     const resultModalRef = useRef();
     const [ matchedString, setMatchedString ] = useState('');
-    const [ labelsFound, setLabelsFound ] = useState([]);
+    const [ labelsList, setLabelsList ] = useState([]);
     const [ croppedImage, setCroppedImage ] = useState(null);
 
     const [ loading, setLoading ] = useState(true);
@@ -80,6 +80,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                 // Set the endpoint
                 const endpoint = await EyePop.endpoint({
                     popId: popUUID,
+
                     auth: { secretKey: popSecret },
                     eyepopUrl: 'https://staging-api.eyepop.ai',
                 }).onStateChanged((from, to) =>
@@ -131,9 +132,9 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                 const offsetY = (window.innerHeight - scaledHeight) / 2;
 
                 setMaskRect({
-                    x: (scaledWidth * .4),
+                    x: (scaledWidth * .3),
                     y: (scaledHeight * (.25 / 2)),
-                    width: scaledWidth - (scaledWidth * .8),
+                    width: scaledWidth - (scaledWidth * .6),
                     height: scaledHeight - (scaledHeight * .25),
                     offsetX: 0,
                     offsetY: offsetY,
@@ -206,7 +207,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
         const blob = new Blob([ new Uint8Array(array) ], { type: 'image/png' });
 
         const compositionCtx = compositionCanvasRef.current.getContext('2d');
-        setLabelsFound([]);
+        setLabelsList([]);
         setMatchedString('');
 
         const newImage = new Image();
@@ -283,6 +284,18 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
     }
 
+    const isOverlapping = (rect1, rect2) =>
+    {
+        if (rect1.x < rect2.x + rect2.width &&
+            rect1.x + rect1.width > rect2.x &&
+            rect1.y < rect2.y + rect2.height &&
+            rect1.y + rect1.height > rect2.y)
+        {
+            return true;
+        }
+        return false;
+    }
+
     const fuzzyDetectName = (maskRect, resultObject, croppedImage) =>
     {
         const names = [
@@ -312,15 +325,14 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                 const obj = child.labels[ j ];
                 let label = obj?.label;
 
+                if (!label) continue;
+
                 // remove any special characters from label
                 label = label.replace(/[^a-zA-Z ]/g, "");
 
-                if (!label) continue;
-
                 const objPosition = { x: child.x, y: child.y, width: child.width, height: child.height };
-                const isObjectContainedInMask = objPosition.x >= maskRect.x && objPosition.y >= maskRect.y && objPosition.x + objPosition.width <= maskRect.x + maskRect.width && objPosition.y + objPosition.height <= maskRect.y + maskRect.height;
 
-                if (!isObjectContainedInMask) continue;
+                if (!isOverlapping(objPosition, maskRect)) continue;
 
                 allLabels.push(label);
 
@@ -344,7 +356,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             }
         }
 
-        setLabelsFound(allLabels);
+        setLabelsList(allLabels);
 
     }
 
@@ -514,7 +526,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
             <div className=' overscroll-none flex flex-col items-center justify-between h-full overflow-hidden'>
 
-                <ResultsOverlay title={matchedString} labelsList={labelsFound} />
+                <ResultsOverlay title={matchedString} labelsList={labelsList} />
 
 
                 <div className={`overscroll-none absolute left-0 top-0 w-full h-full p-0 justify-center overflow-hidden`} >
