@@ -20,13 +20,14 @@ export const ResultsModal = ({ searchTerm, resultModalRef, croppedImage, maskRec
 
         ctx.putImageData(croppedImage, 0, 0);
 
+
     }, [ croppedImage, canvasRef ]);
 
 
     return (
         <>
             <dialog ref={resultModalRef} id="results_modal" className="modal">
-                <div className="modal-box w-11/12 h-11/12 min-w-[30rem] flex flex-col justify-center ">
+                <div className="modal-box w-11/12 h-11/12 min-w-8xl flex flex-col justify-center ">
 
                     <div className="flex gap-2 ">
                         <h1 className="text-white text-4xl"> Detected: </h1>

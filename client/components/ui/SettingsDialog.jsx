@@ -1,10 +1,16 @@
 import ModelSelector from "./ModelSelector";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const SettingsDialog = React.forwardRef((props, ref) =>
 {
-    const [ popId, setPopId ] = useState('');
-    const [ popSecret, setPopSecret ] = useState('');
+    const [ popId, setPopId ] = useState('95581bc77b2b4ce498b95ed545b9e860');
+    const [ popSecret, setPopSecret ] = useState('AAGisBhdNU2Q8LGWTq4suaD2Z0FBQUFBQm1NOWN0NVVQX2JCWjNuazBMV0ctLTk1dzY2djVGeDVuZk43MmJ0bWlvNXpBN3VkeDhja1BOb1F5NWtxRnRheDB6emxCNzVJd3J6RGtnVXJocTdQcHJMenRxV2VmTmpwb3VEOUo1RkxoSTZ0bkZqUGM9');
+
+    useEffect(() =>
+    {
+        if (popId) { props.setPopUUID(popId); }
+        if (popSecret) { props.setPopSecret(popSecret); }
+    }, [ popId, popSecret ]);
 
     return (
         <dialog id="my_modal_2" ref={ref} className="modal">
@@ -24,10 +30,10 @@ const SettingsDialog = React.forwardRef((props, ref) =>
 
                     <label htmlFor="popUuid" className="text-white text-4xl m-2">Pop UUID:</label>
                     <input type="text" id="popUuid" name="popUuid" className="input-field input bg-gray-950 text-white"
-                        onChange={(e) => { setPopId(e.target.value) }} />
+                        onChange={(e) => { setPopId(e.target.value) }} placeholder={popId} />
                     <label htmlFor="popSecret" className="text-white text-4xl m-2">Pop Secret:</label>
                     <input type="text" id="popSecret" name="popSecret" className="input-field input bg-gray-950 text-white"
-                        onChange={(e) => { setPopSecret(e.target.value) }} />
+                        onChange={(e) => { setPopSecret(e.target.value) }} placeholder={popSecret} />
 
                     {
                         popId &&

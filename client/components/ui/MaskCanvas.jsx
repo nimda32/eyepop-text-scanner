@@ -18,18 +18,18 @@ const MaskCanvas = ({ maskRef, maskSize, maskRect, className, }) =>
     {
         if (!maskRef.current) return;
 
-        const source_height = maskRef.current.height;
-        const source_width = maskRef.current.width;
+        // const source_height = maskRef.current.height;
+        // const source_width = maskRef.current.width;
 
-        const parentWidth = maskRef.current.parentElement.clientWidth;
-        const parentHeight = maskRef.current.parentElement.clientHeight;
+        // const parentWidth = maskRef.current.parentElement.clientWidth;
+        // const parentHeight = maskRef.current.parentElement.clientHeight;
 
-        const scaleFactor = Math.min(parentWidth / source_width, parentHeight / source_height);
-        const scaledWidth = source_width * scaleFactor;
-        const scaledHeight = source_height * scaleFactor;
+        // const scaleFactor = Math.min(parentWidth / source_width, parentHeight / source_height);
+        // const scaledWidth = source_width * scaleFactor;
+        // const scaledHeight = source_height * scaleFactor;
 
-        maskRef.current.width = scaledWidth;
-        maskRef.current.height = scaledHeight;
+        // maskRef.current.width = scaledWidth;
+        // maskRef.current.height = scaledHeight;
 
         const canvas = maskRef.current;
         canvas.width = maskSize.width;

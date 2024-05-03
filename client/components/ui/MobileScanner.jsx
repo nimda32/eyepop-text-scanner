@@ -8,6 +8,8 @@ import SettingsDialog from './SettingsDialog';
 import { inferStrings } from '../src/EyePopManager';
 import { ResultsModal } from './ResultsModal';
 import { search, fuzzy } from 'fast-fuzzy';
+import { Result } from 'postcss';
+import { ResultsOverlay } from '../ResultsOverlay';
 
 let isDrawing = false;
 
@@ -22,7 +24,8 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
     // results for the alcohol search
     const resultModalRef = useRef();
-    const [ searchTerm, setSearchTerm ] = useState('');
+    const [ matchedString, setMatchedString ] = useState('');
+    const [ labelsFound, setLabelsFound ] = useState([]);
     const [ croppedImage, setCroppedImage ] = useState(null);
 
     const [ loading, setLoading ] = useState(true);
@@ -258,6 +261,9 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             "jack daniels",
         ];
 
+        const allLabels = [];
+
+        setCroppedImage(croppedImage);
         for (let i = 0; i < resultObject.objects.length; i++)
         {
             const child = resultObject.objects[ i ];
@@ -276,6 +282,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                 label = label.replace(/[^a-zA-Z ]/g, "");
 
                 if (!label) continue;
+                allLabels.push(label);
 
                 const objPosition = { x: child.x, y: child.y, width: child.width, height: child.height };
                 const isObjectContainedInMask = objPosition.x >= maskRect.x && objPosition.y >= maskRect.y && objPosition.x + objPosition.width <= maskRect.x + maskRect.width && objPosition.y + objPosition.height <= maskRect.y + maskRect.height;
@@ -284,28 +291,25 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
                 // use fast fuzzy to find the closest match
                 const result = search(label, names, { returnMatchData: true });
-                console.log('Fuzzy result:', result);
 
                 if (result.length === 0) continue;
-
-
-                console.log('Fuzzy result:', result);
 
                 const matchString = result[ 0 ].item;
 
                 // was there at least half the characters that matched?
                 const isMatch = result[ 0 ].match.length >= (matchString.length / 2);
 
-                if (!isMatch) continue;
-
-                setSearchTerm(matchString);
-                resultModalRef.current.showModal();
-                setCroppedImage(croppedImage);
-
-                return;
+                if (isMatch)
+                {
+                    setMatchedString(matchString);
+                    console.log('Matched:', matchString);
+                    // resultModalRef.current.showModal();
+                }
 
             }
         }
+
+        setLabelsFound(allLabels);
 
     }
 
@@ -331,6 +335,8 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
     const selectWebcam = async (deviceID) =>
     {
+        if (!videoPlaying) setVideoPlaying(true);
+
         console.log('Selecting webcam:', deviceID);
         setSelectedWebcam(deviceID);
 
@@ -366,11 +372,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
         resultCanvasRef.current.width = scaledWidth;
         resultCanvasRef.current.height = scaledHeight;
 
-        if (maskSize.width === window.innerWidth && maskSize.height === window.innerHeight)
-        {
-            setMaskSize({ width: scaledWidth, height: scaledHeight })
-        }
-
+        setMaskSize({ width: scaledWidth, height: scaledHeight })
 
         const rect = resultCanvasRef.current.getBoundingClientRect();
 
@@ -452,134 +454,144 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
 
     return (
-        <div className=' overscroll-none flex flex-col items-center justify-between h-full overflow-hidden'>
 
-            <div className={`overscroll-none absolute left-0 top-0 w-full h-full p-0 justify-center overflow-hidden`} >
+        <>
 
-                <MaskCanvas
-                    maskRef={maskRef}
-                    maskRect={maskRect}
-                    maskSize={maskSize}
-                    id="mask-canvas"
-                    className={`${sharedClass} fixed top-0 left-0 w-full h-full flex justify-center p-0  overscroll-none`}
-                ></MaskCanvas>
+            <div className=' overscroll-none flex flex-col items-center justify-between h-full overflow-hidden'>
 
-                <canvas
-                    id="result-overlay-mobile"
-                    ref={resultCanvasRef}
-                    width={window.innerWidth}
-                    height={window.innerHeight}
-                    className={`${sharedClass}  overscroll-none`}
-                ></canvas>
-
-                <canvas
-                    id="hidden-canvas"
-                    ref={compositionCanvasRef}
-                    width={window.innerWidth}
-                    height={window.innerHeight}
-                    className={`${sharedClass} hidden  overscroll-none`}
-                ></canvas>
-
-                <video
-                    ref={videoRef}
-                    className={`${sharedClass} hidden`}
-                    autoPlay
-                    playsInline
-                    muted
-                ></video>
-
-            </div>
-
-            <div
-                className={`overscroll-none ${loading ? 'h-0' : 'h-[6.5rem]'} transition-all duration-500 z-10 ${marginsStyle} bg-blue-400 flex justify-center items-center rounded-3xl shadow-2xl overflow-hidden`}>
-
-                <div className=' overscroll-none h-full flex justify-center items-center text-center'>
-
-                    {loading ?
-
-                        <>
-                            <div className='text-blue-100  text-center font-extrabold text-4xl pt-2 overflow-hidden hidden '
-                                ref={popNameRef} >
-                            </div>
+                <ResultsOverlay title={matchedString} labelsList={labelsFound} />
 
 
-                            <div className='text-blue-100 m-5 text-center font-extrabold text-2xl overflow-hidden' >
-                                Loading...
-                            </div>
+                <div className={`overscroll-none absolute left-0 top-0 w-full h-full p-0 justify-center overflow-hidden`} >
 
-                        </>
+                    <MaskCanvas
+                        maskRef={maskRef}
+                        maskRect={maskRect}
+                        maskSize={maskSize}
+                        id="mask-canvas"
+                        className={`${sharedClass} absolute overscroll-none z-10`}
+                    ></MaskCanvas>
 
+                    <canvas
+                        id="result-overlay-mobile"
+                        ref={resultCanvasRef}
+                        width={window.innerWidth}
+                        height={window.innerHeight}
+                        className={`${sharedClass} absolute overscroll-none`}
+                    ></canvas>
 
-                        :
+                    <canvas
+                        id="hidden-canvas"
+                        ref={compositionCanvasRef}
+                        width={window.innerWidth}
+                        height={window.innerHeight}
+                        className={`${sharedClass} absolute overscroll-none hidden`}
+                    ></canvas>
 
-                        <div className='flex justify-center items-center h-full w-full gap-1'>
+                    <video
+                        ref={videoRef}
+                        className={`${sharedClass} hidden`}
+                        autoPlay
+                        playsInline
+                        muted
+                    ></video>
 
-
-                            <div className='text-blue-100  text-center font-extrabold text-4xl pt-2 overflow-hidden hidden '
-                                ref={popNameRef} >
-                            </div>
-                            <select
-                                className={`${loading && 'hidden'} bg-white text-gray-700 text-6xl md:text-xl border border-gray-300 rounded-3xl lg:w-72 w-full  h-full self-center`}
-                                onChange={(e) => { selectWebcam(e.target.value) }}
-                            >
-
-                                {webcamDevices.map((device, index) => (
-                                    <option key={index} value={device.deviceId}>
-                                        {device.label}
-                                    </option>
-                                ))}
-
-                            </select>
-
-                            <button
-                                ref={null}
-                                onClick={() => toggleCamera()}
-                                className={`${loading && 'hidden'}  bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white border border-blue-500 hover:border-transparent rounded-3xl text-6xl md:text-xl h-full mr-5 min-w-[7rem] w-44 self-center hover:scale-125 transition-all`} >
-                                {videoPlaying ? 'Stop' : 'Start'}
-                            </button>
-
-                            <div className="bg-gray-800 flex h-full min-w-[5rem] w-[7rem] sm:w-[5rem] lg:w-[2.5rem]  justify-center items-center rounded-full shadow-2xl p-2 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
-                                onClick={() =>
-                                {
-                                    if (settingsRef.current)
-                                    {
-                                        settingsRef.current.showModal();
-                                    }
-                                }}>
-                                <FontAwesomeIcon className='text-blue-100 rounded-full w-full h-full' icon={faGear} />
-                            </div>
-
-
-                        </div>
-                    }
                 </div>
-            </div>
 
-            {loading && (
-                <div className="absolute top-0 left-0 w-screen h-screen flex justify-center items-center bg-gray-500 bg-opacity-50 overflow-hidden overscroll-none">
-                    <div className='w-full h-full animate-spin flex justify-center items-center '>
-                        <FontAwesomeIcon icon={faSpinner} className="text-white text-6xl w-[7rem] sm:w-[5rem] h-[7rem] sm:h-[5rem]" />
+
+                <div
+                    className={`overscroll-none ${loading ? 'h-0' : 'h-[6.5rem]'} transition-all duration-500 z-10 ${marginsStyle} bg-blue-400 flex justify-center items-center rounded-3xl shadow-2xl overflow-hidden`}>
+
+                    <div className=' overscroll-none h-full flex justify-center items-center text-center'>
+
+                        {loading ?
+
+                            <>
+                                <div className='text-blue-100  text-center font-extrabold text-4xl pt-2 overflow-hidden hidden '
+                                    ref={popNameRef} >
+                                </div>
+
+
+                                <div className='text-blue-100 m-5 text-center font-extrabold text-2xl overflow-hidden' >
+                                    Loading...
+                                </div>
+
+                            </>
+
+
+                            :
+
+                            <div className='flex justify-center items-center h-full w-full gap-1'>
+
+
+                                <div className='text-blue-100  text-center font-extrabold text-4xl pt-2 overflow-hidden hidden '
+                                    ref={popNameRef} >
+                                </div>
+
+                                <select
+                                    className={`${loading && 'hidden'} bg-white text-gray-700 text-4xl border border-gray-300 rounded-3xl lg:w-72 w-full  h-full self-center`}
+                                    onChange={(e) => { selectWebcam(e.target.value) }}
+                                >
+
+                                    {webcamDevices.map((device, index) => (
+                                        <option key={index} value={device.deviceId}>
+                                            {device.label}
+                                        </option>
+                                    ))}
+
+                                </select>
+
+                                <button
+                                    ref={null}
+                                    onClick={() => toggleCamera()}
+                                    className={`${loading && 'hidden'}  bg-white hover:bg-blue-500 text-blue-700 font-semibold hover:text-white border border-blue-500 hover:border-transparent rounded-3xl text-4xl h-full mr-5 min-w-[7rem] w-44 self-center hover:scale-125 transition-all`} >
+                                    {videoPlaying ? 'Stop' : 'Start'}
+                                </button>
+
+                                <div className="bg-gray-800 flex h-full min-w-[5rem] w-[7rem] sm:w-[5rem] lg:w-[2.5rem]  justify-center items-center rounded-full shadow-2xl p-2 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
+                                    onClick={() =>
+                                    {
+                                        if (settingsRef.current)
+                                        {
+                                            settingsRef.current.showModal();
+                                        }
+                                    }}>
+                                    <FontAwesomeIcon className='text-blue-100 rounded-full w-full h-full' icon={faGear} />
+                                </div>
+
+
+                            </div>
+                        }
                     </div>
                 </div>
-            )}
 
-            <ResultsModal resultModalRef={resultModalRef} searchTerm={searchTerm} croppedImage={croppedImage} maskRect={maskRect} />
+                {loading && (
+                    <div className="absolute top-0 left-0 w-screen h-screen flex justify-center items-center bg-gray-500 bg-opacity-50 overflow-hidden overscroll-none">
+                        <div className='w-full h-full animate-spin flex justify-center items-center '>
+                            <FontAwesomeIcon icon={faSpinner} className="text-white text-6xl w-[7rem] sm:w-[5rem] h-[7rem] sm:h-[5rem]" />
+                        </div>
+                    </div>
+                )}
 
-            <SettingsDialog ref={settingsRef} setModel={setModel} showModelSelector={popUUID} setPopUUID={setPopUUID} setPopSecret={setPopSecret} />
+                {/* <ResultsModal resultModalRef={resultModalRef} matchedString={matchedString} croppedImage={croppedImage} maskRect={maskRect} /> */}
 
-            {!loading && (
-                <div className="bg-blue-400 flex h-[8rem] w-[8rem] justify-center m-5 items-center rounded-full shadow-2xl p-5 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
-                    onClick={() =>
-                    {
-                        setMaskRect({ x: maskRect.x - 1, y: maskRect.y - 1, width: maskRect.width + 1, height: maskRect.height + 1 });
-                        startInference();
-                        setLoading(true);
-                    }}>
-                    <FontAwesomeIcon className='text-blue-100 rounded-full p-2 w-full h-full' icon={faCamera} />
-                </div>
-            )}
 
-        </div>
+                <SettingsDialog ref={settingsRef} setModel={setModel} showModelSelector={popUUID} setPopUUID={setPopUUID} setPopSecret={setPopSecret} />
+
+                {!loading && (
+                    <div className="bg-blue-400 flex h-[8rem] w-[8rem] justify-center m-5 items-center rounded-full shadow-2xl p-5 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
+                        onClick={() =>
+                        {
+                            setMaskRect({ x: maskRect.x - 1, y: maskRect.y - 1, width: maskRect.width + 1, height: maskRect.height + 1 });
+                            startInference();
+                            setLoading(true);
+                        }}>
+                        <FontAwesomeIcon className='text-blue-100 rounded-full p-2 w-full h-full' icon={faCamera} />
+                    </div>
+                )}
+
+            </div>
+        </>
     );
 
 }
