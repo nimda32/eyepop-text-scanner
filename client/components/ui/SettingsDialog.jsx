@@ -8,6 +8,20 @@ const SettingsDialog = React.forwardRef((props, ref) =>
 
     useEffect(() =>
     {
+        if (popSecret == '' || popId == '' || !popSecret || !popId) { return; }
+
+        fetch('/eyepop/set_credentials', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ popId: popId, secretKey: popSecret })
+        }).then(res => res.json()).then(data => console.log(data));
+
+    }, [ popId, popSecret ]);
+
+    useEffect(() =>
+    {
         if (popId) { props.setPopUUID(popId); }
         if (popSecret) { props.setPopSecret(popSecret); }
     }, [ popId, popSecret ]);

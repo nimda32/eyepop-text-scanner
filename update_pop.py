@@ -9,7 +9,7 @@ import aiofiles
 import argparse as ap
 
 
-def run(EYEPOP_POP_ID, EYEPOP_SECRET_KEY, EYEPOP_URL, logging_level=logging.ERROR):
+def run(EYEPOP_POP_ID, EYEPOP_SECRET_KEY, EYEPOP_URL, logging_level=logging.DEBUG):
 
     logging.basicConfig(level=logging.INFO)
     logging.getLogger('eyepop').setLevel(level=logging_level)

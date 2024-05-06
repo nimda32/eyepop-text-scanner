@@ -22,8 +22,6 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
     const compositionCanvasRef = useRef();
     const maskRef = useRef();
 
-    // results for the alcohol search
-    const resultModalRef = useRef();
     const [ matchedString, setMatchedString ] = useState('');
     const [ labelsList, setLabelsList ] = useState([]);
     const [ croppedImage, setCroppedImage ] = useState(null);
@@ -39,6 +37,8 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
     const [ canvasCtx, setCanvasCtx ] = useState(null);
     const [ maskRect, setMaskRect ] = useState({ x: 0, y: 0, width: window.innerWidth, height: window.innerHeight });
     const [ maskSize, setMaskSize ] = useState({ width: window.innerWidth, height: window.innerHeight });
+    let startX, startY;
+
 
     const setModel = (model) =>
     {
@@ -415,8 +415,6 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
         return { scaleFactor, scaledWidth, scaledHeight, offsetX, offsetY };
     }
 
-    let startX, startY;
-
     const handleDynamicBoxDraw = (e) =>
     {
         if (!canvasCtx) return;
@@ -494,7 +492,6 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
         }
     }
 
-    // add listeners for click and drag events that will draw a box on the canvas
     useEffect(() =>
     {
         if (!canvasCtx) return;
@@ -518,7 +515,6 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             resultCanvasRef.current.removeEventListener('touchend', handleDynamicBoxDraw);
         }
     }, [ canvasCtx ]);
-
 
     return (
 
