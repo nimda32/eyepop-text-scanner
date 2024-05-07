@@ -14,6 +14,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // app.use(bodyParser.json());
+app.use(express.static('public'));
 
 app.post('/eyepop/set_credentials', async (request, res) =>
 {
@@ -53,7 +54,7 @@ app.get('/', (request, res) =>
         }, 1800000);
     }
 
-    return res.html()
+    res.send('Hello World');
 });
 
 async function updatePopComp(request, res)
