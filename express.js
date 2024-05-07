@@ -1,30 +1,20 @@
-import Fastify from 'fastify';
-import FastifyVite from '@fastify/vite';
+import express from 'express';
 import { EyePop } from "@eyepop.ai/eyepop";
 import process from 'process';
+import fetch from 'node-fetch';
+import bodyParser from 'body-parser';
 
 const activePort = process.env.PORT || 8080;
-
 
 const INFER_STRING = "ep_infer id=1 category-name=\"text\" model=eyepop-text:EPTextB1_Text_TorchScriptCuda_float32 threshold=0.6 ! ep_infer id=2 category-name=\"text\" secondary-to-id=1 model=PARSeq:PARSeq_TextDataset_TorchScriptCuda_float32 threshold=0.1";
 
 let POP_UUID = '';
 let POP_API_SECRET = '';
 
-const server = Fastify()
-server.setNotFoundHandler(async (request, reply) =>
-{
-    return reply.html()
-});
+const app = express();
+app.use(bodyParser.json());
 
-await server.register(FastifyVite, {
-    root: import.meta.url,
-    dev: process.argv.includes('--dev'),
-    spa: true,
-    sourceMap: true,
-});
-
-server.post('/eyepop/set_credentials', async (request, reply) =>
+app.post('/eyepop/set_credentials', async (req, res) =>
 {
     try
     {
@@ -47,7 +37,7 @@ server.post('/eyepop/set_credentials', async (request, reply) =>
 
 let hasBeen30Minute = false;
 
-server.get('/', (req, reply) =>
+app.get('/', (req, res) =>
 {
     if (!hasBeen30Minute)
     {
@@ -65,7 +55,7 @@ server.get('/', (req, reply) =>
     return reply.html()
 });
 
-async function updatePopComp(req, reply)
+async function updatePopComp(req, res)
 {
     const { popId, popSecret, inferString } = req.query;
 
@@ -187,7 +177,7 @@ async function updatePopComp(req, reply)
     }
 }
 
-server.get('/eyepop/session', async (req, reply) =>
+app.get('/eyepop/session', async (req, res) =>
 {
     console.log('Authenticating EyePop Session');
     // check if the request is from an authenticated user
@@ -222,5 +212,7 @@ server.get('/eyepop/session', async (req, reply) =>
     }
 });
 
-await server.vite.ready()
-await server.listen({ port: activePort })
+app.listen(activePort, () =>
+{
+    console.log(`Server is running on port ${activePort}`);
+});
