@@ -221,4 +221,4 @@ server.get('/eyepop/session', async (req, reply) =>
 });
 
 await server.vite.ready()
-await server.listen({ port: 8000 })
+await server.listen({ port: 8080 })

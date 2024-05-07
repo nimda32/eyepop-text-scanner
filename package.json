@@ -20,6 +20,7 @@
     "@fortawesome/free-regular-svg-icons": "^6.5.1",
     "@fortawesome/free-solid-svg-icons": "^6.5.1",
     "@fortawesome/react-fontawesome": "^0.2.0",
+    "fast-fuzzy": "^1.12.0",
     "font-awesome": "^4.7.0",
     "pino": "^8.19.0",
     "qrcode": "^1.5.3",
