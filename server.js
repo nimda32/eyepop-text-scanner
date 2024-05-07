@@ -3,8 +3,6 @@ import FastifyVite from '@fastify/vite';
 import { EyePop } from "@eyepop.ai/eyepop";
 import process from 'process';
 
-const activePort = process.env.PORT || 8080;
-
 
 const INFER_STRING = "ep_infer id=1 category-name=\"text\" model=eyepop-text:EPTextB1_Text_TorchScriptCuda_float32 threshold=0.6 ! ep_infer id=2 category-name=\"text\" secondary-to-id=1 model=PARSeq:PARSeq_TextDataset_TorchScriptCuda_float32 threshold=0.1";
 
@@ -223,4 +221,4 @@ server.get('/eyepop/session', async (req, reply) =>
 });
 
 await server.vite.ready()
-await server.listen({ port: activePort })
+await server.listen({ port: 8000 })

@@ -4,7 +4,10 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "start": "node app.js"
+    "dev": "node server.js --dev",
+    "build": "vite build",
+    "start": "node server.js",
+    "restart": "vite build && node server.js"
   },
   "author": "",
   "license": "ISC",
