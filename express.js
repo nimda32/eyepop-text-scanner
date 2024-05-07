@@ -2,6 +2,7 @@ import express from 'express';
 import { EyePop } from "@eyepop.ai/eyepop";
 import process from 'process';
 import { fetch } from 'node-fetch';
+import { bodyParser } from 'body-parser';
 
 const activePort = process.env.PORT || 8080;
 
@@ -11,7 +12,9 @@ let POP_UUID = '';
 let POP_API_SECRET = '';
 
 const app = express();
-app.use(activePort);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+// app.use(bodyParser.json());
 
 app.post('/eyepop/set_credentials', async (request, res) =>
 {
