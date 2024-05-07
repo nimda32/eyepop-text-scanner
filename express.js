@@ -1,22 +1,44 @@
-import express from 'express';
-import { EyePop } from "@eyepop.ai/eyepop";
-import process from 'process';
-import { fetch } from 'node-fetch';
+// SERVER
+const fastify = require("fastify")({ caseSensitive: false });
+const path = require("path");
+require("dotenv").config();
+
+const crypto = require("crypto");
+const axios = require('axios');
 
 const activePort = process.env.PORT || 8080;
 
-const INFER_STRING = "ep_infer id=1 category-name=\"text\" model=eyepop-text:EPTextB1_Text_TorchScriptCuda_float32 threshold=0.6 ! ep_infer id=2 category-name=\"text\" secondary-to-id=1 model=PARSeq:PARSeq_TextDataset_TorchScriptCuda_float32 threshold=0.1";
+fastify.setNotFoundHandler(
+    {
+        preValidation: (req, reply, done) =>
+        {
+            done();
+        },
+        preHandler: (req, reply, done) =>
+        {
+            done();
+        },
+    },
+    function (request, reply)
+    {
+        reply.callNotFound();
+    }
+);
 
-let POP_UUID = '';
-let POP_API_SECRET = '';
+// console.log("PATH: ", path.join(__dirname, "public"));
+fastify.register(require("@fastify/static"), {
+    root: path.join(__dirname, "client"),
+    http2: true,
+    wildcard: true,
+});
 
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-// app.use(bodyParser.json());
-app.use(express.static('public'));
+fastify.get("/", function (req, reply)
+{
+    return reply.sendFile("/index.html");
+});
 
-app.post('/eyepop/set_credentials', async (request, res) =>
+
+server.post('/eyepop/set_credentials', async (request, reply) =>
 {
     try
     {
@@ -28,18 +50,18 @@ app.post('/eyepop/set_credentials', async (request, res) =>
         updatePopComp({ query: { popId: POP_UUID, popSecret: POP_API_SECRET, inferString: INFER_STRING } });
 
 
-        res.send({ message: 'Authenticated' });
+        reply.send({ message: 'Authenticated' });
 
     } catch (error)
     {
         console.error('Error:', error);
-        res.send({ error });
+        reply.send({ error });
     }
 });
 
 let hasBeen30Minute = false;
 
-app.get('/', (request, res) =>
+server.get('/', (req, reply) =>
 {
     if (!hasBeen30Minute)
     {
@@ -54,12 +76,12 @@ app.get('/', (request, res) =>
         }, 1800000);
     }
 
-    res.send('Hello World');
+    return reply.html()
 });
 
-async function updatePopComp(request, res)
+async function updatePopComp(req, reply)
 {
-    const { popId, popSecret, inferString } = request.query;
+    const { popId, popSecret, inferString } = req.query;
 
     console.log('Updating EyePop Config:', popId, inferString);
 
@@ -179,7 +201,7 @@ async function updatePopComp(request, res)
     }
 }
 
-app.get('/eyepop/session', async (request, res) =>
+server.get('/eyepop/session', async (req, reply) =>
 {
     console.log('Authenticating EyePop Session');
     // check if the request is from an authenticated user
@@ -205,16 +227,22 @@ app.get('/eyepop/session', async (request, res) =>
 
         console.log('New EyePop Session:', session)
 
-        res.send(session);
+        reply.send(session);
 
     } catch (error)
     {
         console.error('Error:', error);
-        res.send({ error });
+        reply.send({ error });
     }
 });
 
-app.listen(activePort, () =>
+
+fastify.listen({ port: activePort }, function (err, address)
 {
-    console.log(`Server is running on port ${activePort}`);
+    if (err)
+    {
+        fastify.log.error(err);
+    }
+    console.log(`Your app is listening on ${address}`);
+    fastify.log.info(`server listening on ${address}`);
 });

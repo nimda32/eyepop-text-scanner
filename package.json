@@ -27,7 +27,14 @@
     "react-dom": "^18.3.1",
     "react-router": "^6.23.0",
     "react-router-dom": "^6.23.0",
-    "save": "^2.9.0"
+    "save": "^2.9.0",
+    "@fastify/cookie": "^9.1.0",
+    "@fastify/session": "^10.5.0",
+    "@fastify/static": "^6.11.2",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "express-session": "^1.17.3",
+    "fastify": "^4.24.3"
   },
   "devDependencies": {
     "@types/node": "^20.11.25",
