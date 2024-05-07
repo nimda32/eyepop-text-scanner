@@ -2,7 +2,6 @@ import express from 'express';
 import { EyePop } from "@eyepop.ai/eyepop";
 import process from 'process';
 import { fetch } from 'node-fetch';
-import { bodyParser } from 'body-parser';
 
 const activePort = process.env.PORT || 8080;
 
