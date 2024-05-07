@@ -1,8 +1,7 @@
 import express from 'express';
 import { EyePop } from "@eyepop.ai/eyepop";
 import process from 'process';
-import fetch from 'node-fetch';
-import bodyParser from 'body-parser';
+import { fetch } from 'node-fetch';
 
 const activePort = process.env.PORT || 8080;
 
@@ -12,9 +11,9 @@ let POP_UUID = '';
 let POP_API_SECRET = '';
 
 const app = express();
-app.use(bodyParser.json());
+app.use(activePort);
 
-app.post('/eyepop/set_credentials', async (req, res) =>
+app.post('/eyepop/set_credentials', async (request, res) =>
 {
     try
     {
@@ -26,18 +25,18 @@ app.post('/eyepop/set_credentials', async (req, res) =>
         updatePopComp({ query: { popId: POP_UUID, popSecret: POP_API_SECRET, inferString: INFER_STRING } });
 
 
-        reply.send({ message: 'Authenticated' });
+        res.send({ message: 'Authenticated' });
 
     } catch (error)
     {
         console.error('Error:', error);
-        reply.send({ error });
+        res.send({ error });
     }
 });
 
 let hasBeen30Minute = false;
 
-app.get('/', (req, res) =>
+app.get('/', (request, res) =>
 {
     if (!hasBeen30Minute)
     {
@@ -52,12 +51,12 @@ app.get('/', (req, res) =>
         }, 1800000);
     }
 
-    return reply.html()
+    return res.html()
 });
 
-async function updatePopComp(req, res)
+async function updatePopComp(request, res)
 {
-    const { popId, popSecret, inferString } = req.query;
+    const { popId, popSecret, inferString } = request.query;
 
     console.log('Updating EyePop Config:', popId, inferString);
 
@@ -177,7 +176,7 @@ async function updatePopComp(req, res)
     }
 }
 
-app.get('/eyepop/session', async (req, res) =>
+app.get('/eyepop/session', async (request, res) =>
 {
     console.log('Authenticating EyePop Session');
     // check if the request is from an authenticated user
@@ -203,12 +202,12 @@ app.get('/eyepop/session', async (req, res) =>
 
         console.log('New EyePop Session:', session)
 
-        reply.send(session);
+        res.send(session);
 
     } catch (error)
     {
         console.error('Error:', error);
-        reply.send({ error });
+        res.send({ error });
     }
 });
 
