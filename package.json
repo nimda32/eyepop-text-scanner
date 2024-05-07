@@ -22,6 +22,7 @@
     "express": "^4.19.2",
     "fast-fuzzy": "^1.12.0",
     "font-awesome": "^4.7.0",
+    "node-fetch": "^3.3.2",
     "pino": "^8.19.0",
     "qrcode": "^1.5.3",
     "react": "^18.3.1",
