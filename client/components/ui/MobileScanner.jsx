@@ -194,9 +194,9 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
 
                 setMaskRect({
-                    x: (scaledWidth * .2),
+                    x: (scaledWidth * .3),
                     y: (scaledHeight * (.25 / 2)),
-                    width: scaledWidth - (scaledWidth * .4),
+                    width: scaledWidth - (scaledWidth * .6),
                     height: scaledHeight - (scaledHeight * .25),
                     offsetX: 0,
                     offsetY: offsetY,
@@ -548,6 +548,19 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
         if (e.type === 'mousedown' || e.type === 'touchstart')
         {
+            setMatchedString('');
+            setLabelsList([]);
+
+            setMaskRect({
+                x: (scaledWidth * .3),
+                y: (scaledHeight * (.25 / 2)),
+                width: scaledWidth - (scaledWidth * .6),
+                height: scaledHeight - (scaledHeight * .25),
+                offsetX: 0,
+                offsetY: offsetY,
+            })
+
+
             startX = x;
             startY = y;
             isDrawing = true;
@@ -568,9 +581,9 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                 setLabelsList([]);
 
                 setMaskRect({
-                    x: (scaledWidth * .2),
+                    x: (scaledWidth * .3),
                     y: (scaledHeight * (.25 / 2)),
-                    width: scaledWidth - (scaledWidth * .4),
+                    width: scaledWidth - (scaledWidth * .6),
                     height: scaledHeight - (scaledHeight * .25),
                     offsetX: 0,
                     offsetY: offsetY,
