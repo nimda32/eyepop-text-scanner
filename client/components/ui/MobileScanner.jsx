@@ -442,15 +442,15 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
                 const matchString = result[ 0 ].item;
 
-                // was there at least half the characters that matched?
-                const isMatch = result[ 0 ].match.length >= (matchString.length / 2);
+                // // was there at least half the characters that matched?
+                // const isMatch = result[ 0 ].match.length >= (matchString.length / 2);
 
-                if (isMatch)
-                {
-                    setMatchedString(matchString);
-                    console.log('Matched:', matchString);
-                    // resultModalRef.current.showModal();
-                }
+                // if (isMatch)
+                // {
+                setMatchedString(matchString);
+                console.log('Matched:', matchString);
+                // resultModalRef.current.showModal();
+                // }
 
             }
         }
