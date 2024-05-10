@@ -24,17 +24,6 @@ const config = {
     build: {
         outDir: '../dist/',
         rollupOptions: {
-            plugins: [
-                {
-                    // copy the eyepop.min.js file to the build folder
-                    name: 'copy-eyepop',
-                    generateBundle(options, bundle)
-                    {
-                        const source = readFileSync(join(root, 'components/eyepop.min.js'))
-                        writeFileSync(join(options.dir, 'eyepop.min.js'), source)
-                    }
-                }
-            ],
             output: {
                 entryFileNames: 'index.js',
                 chunkFileNames: 'index.js',
