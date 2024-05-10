@@ -407,7 +407,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             "Shadow Ridge Spirits Co."
         ];
 
-        const allLabels = [];
+        let allLabels = [];
 
         setCroppedImage(croppedImage);
         for (let i = 0; i < resultObject.objects.length; i++)
@@ -449,10 +449,12 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             }
         }
 
-        allLabels = allLabels.sort((a, b) => b.area - a.area).map((item) => item.label);
+        // sort the labels by area, largest first
+        allLabels = allLabels.sort((a, b) => b.area - a.area).map((item) => item.label).reverse();
+
+        console.log('All Labels:', allLabels);
 
         setLabelsList(allLabels);
-        console.log('All Labels:', allLabels);
     }
 
     const populateWebcamDevices = async () =>
