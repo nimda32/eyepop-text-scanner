@@ -9,14 +9,26 @@ import aiofiles
 import argparse as ap
 
 
-def run(EYEPOP_POP_ID, EYEPOP_SECRET_KEY, EYEPOP_URL, logging_level=logging.DEBUG):
+def run(EYEPOP_POP_ID, EYEPOP_SECRET_KEY, EYEPOP_URL, logging_level=logging.ERROR):
 
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging_level)
     logging.getLogger('eyepop').setLevel(level=logging_level)
 
     with EyePopSdk.endpoint(pop_id=EYEPOP_POP_ID, secret_key=EYEPOP_SECRET_KEY, eyepop_url=EYEPOP_URL, is_async=False) as endpoint:
 
         manifest = endpoint.get_manifest()
+
+        modelsLoaded = endpoint.list_models()
+
+        popConfig = endpoint.get_pop_comp()
+
+        print(
+            manifest,
+            '\n\n----------------\n\n',
+            modelsLoaded,
+            '\n\n----------------\n\n',
+            popConfig
+        )
 
         # set manifest for PARSeq
         manifest.append(

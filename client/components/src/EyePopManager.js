@@ -1,4 +1,4 @@
-import { EyePop } from "@eyepop.ai/eyepop";
+import "../eyepop.min.js";
 import { Render2d } from "@eyepop.ai/eyepop-render-2d";
 import QRCode from "qrcode";
 

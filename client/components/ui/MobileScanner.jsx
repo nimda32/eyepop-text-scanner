@@ -1,7 +1,7 @@
 import React, { useEffect, useState, videoRef, resultCanvasRef, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCamera, faCancel, faGear, faRepeat, faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { EyePop } from "@eyepop.ai/eyepop";
+import "../eyepop.min.js";
 import { Render2d } from '@eyepop.ai/eyepop-render-2d';
 import MaskCanvas, { drawGradient } from './MaskCanvas';
 import SettingsDialog from './SettingsDialog';
@@ -79,8 +79,8 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             {
                 // Set the endpoint
                 const endpoint = await EyePop.endpoint({
+                    isSandbox: false,
                     popId: popUUID,
-
                     auth: { secretKey: popSecret },
                     eyepopUrl: 'https://staging-api.eyepop.ai',
                 }).onStateChanged((from, to) =>
@@ -91,17 +91,76 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                     console.log('Ingress event:', event);
                 }).connect();
 
+                const popComp = endpoint.popComp();
+                const inferString = `
+                    ep_infer id=1 category-name="text" 
+                    model=eyepop-text:EPTextB1_Text_TorchScriptCuda_float32 threshold=0.6 
+                    ! ep_infer id=2 category-name="text" secondary-to-id=1 model=PARSeq:PARSeq_TextDataset_TorchScriptCuda_float32 threshold=0.1
+                `;
+
+                console.log('PopComp:', popComp === inferString)
+
+                if (popComp !== inferString)
+                {
+
+                    const manifest =
+                        [
+                            { "authority": "legacy", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/legacy/1.2.0/manifest.json" },
+                            { "authority": "Mediapipe", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/Mediapipe/1.3.0/manifest.json" },
+                            { "authority": "yolov5", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/yolov5/1.0.2/manifest.json" },
+                            { "authority": "yolov7", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/yolov7/1.0.1/manifest.json" },
+                            { "authority": "yolov8", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/yolov8/1.0.1/manifest.json" },
+                            { "authority": "PARSeq", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/PARSeq/1.0.1/manifest.json" },
+                            { "authority": "mobilenet", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/mobilenet/1.0.1/manifest.json" },
+                            { "authority": "eyepop-person", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/epperson/1.0.2/manifest.json" },
+                            { "authority": "eyepop-animal", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/epanimal/1.0.2/manifest.json" },
+                            { "authority": "eyepop-device", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/epdevice/1.0.2/manifest.json" },
+                            { "authority": "eyepop-sports", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/epsports/1.0.2/manifest.json" },
+                            { "authority": "eyepop-vehicle", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/epvehicle/1.0.2/manifest.json" },
+                            { "authority": "eyepop-coco", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/epcoco/1.0.2/manifest.json" },
+                            { "authority": "eyepop-age", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/epage/0.2.0/manifest.json" },
+                            { "authority": "eyepop-gender", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/epgender/0.2.0/manifest.json" },
+                            { "authority": "eyepop-expression", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/epexpression/0.2.0/manifest.json" },
+                            { "authority": "PARSeq", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/PARSeq/1.0.2/manifest.json" },
+                            { "authority": "eyepop-text", "manifest": "https://s3.amazonaws.com/models.eyepop.ai/releases/eptext/1.0.3/manifest.json" },
+                        ]
+
+
+                    const newModels = [ {
+                        'model_id': 'PARSeq:PARSeq',
+                        'dataset': 'TextDataset',
+                        'format': 'TorchScriptCuda',
+                        'type': 'float32'
+                    }, {
+                        'model_id': 'eyepop-text:EPTextB1',
+                        'dataset': 'Text',
+                        'format': 'TorchScriptCuda',
+                        'type': 'float32'
+                    } ]
+
+                    await endpoint.changeManifest(manifest);
+
+                    for (let model of newModels)
+                    {
+                        console.log("Loading model: ", JSON.stringify(model));
+                        await endpoint.loadModel(model);
+                    }
+
+                    console.log('models loaded:', JSON.stringify(await endpoint.models()));
+
+                    await endpoint.changePopComp(inferString);
+                }
+
                 popNameRef.current.innerText = endpoint.popName();
 
                 setEyePopEndpoint(endpoint);
                 setLoading(false);
 
-
             } catch (error)
             {
                 console.error('Error parsing mobile data:', error);
                 alert('Pop Failed to load. Verify UUID', error);
-                window.location.reload();
+                // window.location.reload();
             }
         }
 
@@ -215,6 +274,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
         newImage.onload = () =>
         {
 
+            console.log('Image loaded');
 
             eyePopEndpoint
                 .process({ stream: blob, mimeType: 'image/png' })
@@ -276,6 +336,9 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                     }
 
                 }).catch((error) =>
+                {
+                    setLoading(false);
+                }).finally(() =>
                 {
                     setLoading(false);
                 });
@@ -636,7 +699,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                     </div>
                 )}
 
-                <SettingsDialog ref={settingsRef} setModel={setModel} showModelSelector={popUUID} setPopUUID={setPopUUID} setPopSecret={setPopSecret} />
+                <SettingsDialog ref={settingsRef} setModel={setModel} showModelSelector={false} setPopUUID={setPopUUID} setPopSecret={setPopSecret} />
 
                 {!loading && (
                     <div className="bg-blue-400 flex h-[8rem] w-[8rem] justify-center m-5 items-center rounded-full shadow-2xl p-5 z-10 cursor-pointer transition-all duration-200 hover:animate-pulse hover:scale-110 active:scale-125"
