@@ -537,7 +537,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) => {
           height: child.height,
         };
         const objArea =
-          Math.abs(child.width - child.x) * Math.abs(child.height - child.y);
+          Math.abs(child.width) * Math.abs(child.height);
 
         console.log(label, objArea);
 
