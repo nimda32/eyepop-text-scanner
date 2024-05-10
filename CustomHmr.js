@@ -8,13 +8,13 @@ export default function CustomHmr()
         {
             if (file.includes('dist/'))
             {
-                return
+                return;
             }
 
             server.ws.send({
                 type: 'full-reload',
                 path: '*',
-            })
-        },
-    }
+            });
+        }
+    };
 }
