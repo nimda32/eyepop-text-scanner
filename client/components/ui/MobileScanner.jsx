@@ -530,6 +530,9 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
             if (Math.abs(x - startX) < (scaledWidth / 15) || Math.abs(y - startY) < (scaledHeight / 15))
             {
 
+                setMatchedString('');
+                setLabelsList([]);
+
                 setMaskRect({
                     x: (scaledWidth * .4),
                     y: (scaledHeight * (.25 / 2)),
