@@ -430,10 +430,11 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                 label = label.replace(/[^a-zA-Z ]/g, "");
 
                 const objPosition = { x: child.x, y: child.y, width: child.width, height: child.height };
+                const objArea = (child.width - child.x) * (child.height - child.y);
 
                 if (!isOverlapping(objPosition, maskRect)) continue;
 
-                allLabels.push(label);
+                allLabels.push({ label, area: objArea });
 
                 // use fast fuzzy to find the closest match
                 const result = search(label, names, { returnMatchData: true, ignoreCase: true, ignoreSymbols: true, });
@@ -442,21 +443,16 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
 
                 const matchString = result[ 0 ].item;
 
-                // // was there at least half the characters that matched?
-                // const isMatch = result[ 0 ].match.length >= (matchString.length / 2);
-
-                // if (isMatch)
-                // {
                 setMatchedString(matchString);
                 console.log('Matched:', matchString);
-                // resultModalRef.current.showModal();
-                // }
 
             }
         }
 
-        setLabelsList(allLabels);
+        allLabels = allLabels.sort((a, b) => b.area - a.area).map((item) => item.label);
 
+        setLabelsList(allLabels);
+        console.log('All Labels:', allLabels);
     }
 
     const populateWebcamDevices = async () =>
