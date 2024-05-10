@@ -539,6 +539,8 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) => {
         const objArea =
           Math.abs(child.width - child.x) * Math.abs(child.height - child.y);
 
+        console.log(label, objArea);
+
         if (!isOverlapping(objPosition, maskRect)) continue;
 
         allLabels.push({ label, area: objArea });
@@ -562,8 +564,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) => {
     // sort the labels by area, largest first
     allLabels = allLabels
       .sort((a, b) => b.area - a.area)
-      .map((item) => item.label)
-      .reverse();
+      .map((item) => item.label);
 
     console.log("All Labels:", allLabels);
 
