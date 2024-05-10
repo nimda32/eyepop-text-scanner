@@ -154,13 +154,15 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) =>
                 popNameRef.current.innerText = endpoint.popName();
 
                 setEyePopEndpoint(endpoint);
-                setLoading(false);
 
             } catch (error)
             {
                 console.error('Error parsing mobile data:', error);
                 alert('Pop Failed to load. Verify UUID', error);
                 // window.location.reload();
+            } finally
+            {
+                setLoading(false);
             }
         }
 
