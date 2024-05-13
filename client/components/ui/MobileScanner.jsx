@@ -89,7 +89,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) => {
       try {
         // Set the endpoint
         const endpoint = await EyePop.endpoint({
-          isSandbox: false,
+          isSandbox: true,
           popId: popUUID,
           auth: { secretKey: popSecret },
           eyepopUrl: "https://staging-api.eyepop.ai",
@@ -509,6 +509,11 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) => {
       "Perfect Soul Whiskey Co.",
       "Misadventure & Co.",
       "Shadow Ridge Spirits Co.",
+      "Kix",
+      "kellog",
+      "special k",
+      "cocoa puffs",
+      "cocoa pebbles",
     ];
 
     let allLabels = [];
@@ -536,8 +541,7 @@ const MobileScanner = ({ popNameRef, resultCanvasRef, videoRef }) => {
           width: child.width,
           height: child.height,
         };
-        const objArea =
-          Math.abs(child.width) * Math.abs(child.height);
+        const objArea = Math.abs(child.width) * Math.abs(child.height);
 
         console.log(label, objArea);
 
